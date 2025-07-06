@@ -1,363 +1,374 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catálogo de Produtos</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Arial, sans-serif; background: #f9f9f9; }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Catálogo de Produtos</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f9f9f9; }
 
-    header { background: #ff7800; color: #fff; text-align: center; padding: 1rem; }
+        header { background: #ff7800; color: #fff; text-align: center; padding: 1rem; }
 
-    header img {
-      height: 100px;
-      border-radius: 50%;
-    }
+        header img {
+            height: 100px;
+            border-radius: 50%;
+        }
 
-    nav {
-      background: #444;
-      color: white;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      padding: 0.5rem 5%;
-    }
+        nav {
+            background: #444;
+            color: white;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 5%;
+        }
 
-    .categorias, .pesquisa {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 0.2rem;
-    }
+        .categorias, .pesquisa {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.2rem;
+        }
 
-    .categorias {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      overflow-x: auto;
-      flex-wrap: nowrap;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      padding-bottom: 7px; /* espaço interno */
-      margin-bottom: 4px; /* "empurra" a barra para fora um pouco */
-    }
+        .categorias {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+            padding-bottom: 7px; /* espaço interno */
+            margin-bottom: 4px; /* "empurra" a barra para fora um pouco */
+        }
 
-    .categorias::-webkit-scrollbar {
-      padding-top: 50px;
-      height: 6px;
-    }
-    .categorias::-webkit-scrollbar-thumb {
-      background: #666;
-      border-radius: 3px;
-      padding-top: 50px;
-    }
+        .categorias::-webkit-scrollbar {
+            padding-top: 50px;
+            height: 6px;
+        }
+        .categorias::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 3px;
+            padding-top: 50px;
+        }
 
-    nav button {
-      white-space: nowrap;
-      background: #666;
-      color: white;
-      padding: 0.5rem;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+        nav button {
+            white-space: nowrap;
+            background: #666;
+            color: white;
+            padding: 0.5rem;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    nav button:hover { background: #888; }
+        nav button:hover { background: #888; }
 
-    .botao-carrinho {
-      width: 60px;
-      height: 60px;
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #ff7800;
-      color: white;
-      border: none;
-      border-radius: 50px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      cursor: pointer;
-      font-size: 2.2rem;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      justify-content: space-around;
-    }
-    .botao-carrinho:hover {
-      background: #218838;
-    }
-    .botao-carrinho span {
-      width: 20px;
-      height: 20px;
-      background: red;
-      color: white;
-      font-size: 12px;
-      border-radius: 50%;
-      padding-top: 4px;
-      position: absolute;
-      top: 0px;
-      right: -5px;
-      text-align: center;
-    }
+        .botao-carrinho {
+            width: 60px;
+            height: 60px;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #ff7800;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            cursor: pointer;
+            font-size: 2.2rem;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            justify-content: space-around;
+        }
+        .botao-carrinho:hover {
+            background: #218838;
+        }
+        .botao-carrinho span {
+            width: 20px;
+            height: 20px;
+            background: red;
+            color: white;
+            font-size: 12px;
+            border-radius: 50%;
+            padding-top: 4px;
+            position: absolute;
+            top: 0px;
+            right: -5px;
+            text-align: center;
+        }
 
-    .pesquisa input {
-      padding: 0.5rem;
-      border-radius: 5px;
-      border: none;
-      width: 200px;
-    }
+        /* Animação para chamar atenção no botão do carrinho */
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+            50% { transform: scale(1.1); box-shadow: 0 0 15px rgba(255,120,0,0.7); }
+            100% { transform: scale(1); box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        }
 
-    #produtos {
-      width: 90%;
-      margin: auto;
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      padding: 1rem;
-      justify-content: center;
-    }
+        .botao-carrinho.animate-cart {
+            animation: pulse 0.5s ease-in-out;
+        }
 
-    .produto {
-      background: white;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      width: 240px;
-      padding: 1rem;
-      text-align: center;
-    }
+        .pesquisa input {
+            padding: 0.5rem;
+            border-radius: 5px;
+            border: none;
+            width: 200px;
+        }
 
-    .produto img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-      border-radius: 5px;
-    }
+        #produtos {
+            width: 90%;
+            margin: auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+            justify-content: center;
+        }
 
-    .produto h3 { margin: 0.5rem 0; }
+        .produto {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            width: 240px;
+            padding: 1rem;
+            text-align: center;
+        }
 
-.quantidade-container {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 0.5rem;
-    }
+        .produto img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
 
-    .quantidade-container button {
-      width: 32px;
-      background: #787878 !important;
-      padding: 0.3rem 0.7rem !important;
-    }
+        .produto h3 { margin: 0.5rem 0; }
 
-    .quantidade-container span {
-      margin-top: 8px;
-      min-width: 20px;
-      text-align: center;
-      font-weight: bold;
-    }
+        .quantidade-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
 
-    #carrinho {
-      position: fixed;
-      bottom: 80px; /* Fica acima do botão flutuante */
-      right: 20px;
-      background: #fff;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      border-radius: 8px;
-      width: 300px;
-      z-index: 2;
-      box-shadow: 0 0 10px rgba(0,0,0,0.2);
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.3s ease;
-      display: none;
-    }
+        .quantidade-container button {
+            width: 32px;
+            background: #787878 !important;
+            padding: 0.3rem 0.7rem !important;
+        }
 
-    #espacototalCarrinho{
-      margin-top: 0.5rem;
-    }
+        .quantidade-container span {
+            margin-top: 8px;
+            min-width: 20px;
+            text-align: center;
+            font-weight: bold;
+        }
 
-    #carrinho h3{
-      border-bottom: 2px solid rgb(51, 51, 51);
-      margin-bottom: 10px;
-    }
+        #carrinho {
+            position: fixed;
+            bottom: 80px; /* Fica acima do botão flutuante */
+            right: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 1rem;
+            border-radius: 8px;
+            width: 300px;
+            z-index: 2;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            display: none;
+        }
 
-    #listaCarrinho {
-      max-height: 300px; /* ajuste conforme necessário */
-      overflow-y: auto;
-      padding-right: 6px; /* para evitar que o texto fique escondido sob a barra de rolagem */
-      margin-right: -6px;
-    }
+        #espacototalCarrinho{
+            margin-top: 0.5rem;
+        }
+
+        #carrinho h3{
+            border-bottom: 2px solid rgb(51, 51, 51);
+            margin-bottom: 10px;
+        }
+
+        #listaCarrinho {
+            max-height: 300px; /* ajuste conforme necessário */
+            overflow-y: auto;
+            padding-right: 6px; /* para evitar que o texto fique escondido sob a barra de rolagem */
+            margin-right: -6px;
+        }
 
 
-    .produto button, #carrinho button, #btenviarpedido, #btcancelar, #btAdicionarAoCarrinhoComAdicionais, #btCancelarAdicionais, #btfinalizarpedido{
-	  font-size:16px;
-	  margin-top: 0.5rem;
-      padding: 0.5rem;
-      background: green;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
+        .produto button, #carrinho button, #btenviarpedido, #btcancelar, #btAdicionarAoCarrinhoComAdicionais, #btCancelarAdicionais, #btfinalizarpedido{
+            font-size:16px;
+            margin-top: 0.5rem;
+            padding: 0.5rem;
+            background: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    #btcancelar, #btCancelarAdicionais{
-      background: red;
-    }
+        #btcancelar, #btCancelarAdicionais{
+            background: red;
+        }
 
-    #carrinho.ativo {
-      display: block;
-      opacity: 1;
-      transform: translateY(0);
-    }
+        #carrinho.ativo {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
 
-    #carrinho ul {
-      list-style: none;
-    }
+        #carrinho ul {
+            list-style: none;
+        }
 
-    #carrinho li {
-      margin-bottom: 0.6rem;
-      font-size: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        #carrinho li {
+            margin-bottom: 0.6rem;
+            font-size: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    #carrinho li span { flex: 1; }
+        #carrinho li span { flex: 1; }
 
-    #carrinho li button {
-	  font-size: 12px;
-      background: red;
-	  margin-top: 0px;
-      padding: 0.3rem 0.5rem;
-    }
+        #carrinho li button {
+            font-size: 12px;
+            background: red;
+            margin-top: 0px;
+            padding: 0.3rem 0.5rem;
+        }
 
-    footer {
-      background: #333;
-      color: white;
-      text-align: center;
-      padding: 1rem;
-      margin-top: 2rem;
-    }
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+        }
 
-    footer a {
-      color: #fff;
-      margin: 0 10px;
-      text-decoration: none;
-    }
+        footer a {
+            color: #fff;
+            margin: 0 10px;
+            text-decoration: none;
+        }
 
-    #popupPedido {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3;
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
+        #popupPedido {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
 
-    #popupPedido.ativo {
-      opacity: 1;
-      pointer-events: auto;
-    }
+        #popupPedido.ativo {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
-#popupPedido.ativo .popup-conteudo { transform: scale(1); }
+        #popupPedido.ativo .popup-conteudo { transform: scale(1); }
 
-    .popup-conteudo input, .popup-conteudo select {
-      width: 100%;
-      padding: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-    }
+        .popup-conteudo input, .popup-conteudo select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
 
-    /* Estilos para o Pop-up de Adicionais */
-    #popupAdicionais {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 4; /* Maior que o popupPedido */
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.3s ease;
-    }
+        /* Estilos para o Pop-up de Adicionais */
+        #popupAdicionais {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 4; /* Maior que o popupPedido */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
 
-    #popupAdicionais.ativo {
-      opacity: 1;
-      pointer-events: auto;
-    }
+        #popupAdicionais.ativo {
+            opacity: 1;
+            pointer-events: auto;
+        }
 
-    #popupAdicionais .popup-conteudo, .popup-conteudo {
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      width: 80%;
-      max-width: 400px;
-      max-height: 90vh; /* Limita a altura para rolagem */
-      overflow-y: auto; /* Adiciona barra de rolagem se necessário */
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transform: scale(0.9);
-      transition: transform 0.3s ease;
-    }
+        #popupAdicionais .popup-conteudo, .popup-conteudo {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 400px;
+            max-height: 90vh; /* Limita a altura para rolagem */
+            overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
 
-    #popupAdicionais.ativo .popup-conteudo {
-      transform: scale(1);
-    }
+        #popupAdicionais.ativo .popup-conteudo {
+            transform: scale(1);
+        }
 
-    .adicional-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px dashed #eee;
-    }
+        .adicional-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
 
-    .adicional-item:last-child {
-      border-bottom: none;
-    }
+        .adicional-item:last-child {
+            border-bottom: none;
+        }
 
-    .adicional-item label {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      flex-grow: 1;
-    }
+        .adicional-item label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            flex-grow: 1;
+        }
 
-    .adicional-item input[type="checkbox"] {
-      width: auto;
-      margin: 0;
-    }
+        .adicional-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
 
-    .adicional-item span {
-      font-weight: bold;
-    }
+        .adicional-item span {
+            font-weight: bold;
+        }
 
-  </style>
+    </style>
 </head>
 <body>
 
 <header>
-  <div id="logo"><img src="https://files.nextgocard.com.br/brands/f05d96cb-710f-4a89-8cba-f9e07aaa12ff.png" alt="Logomarca"></div>
+    <div id="logo"><img src="https://files.nextgocard.com.br/brands/f05d96cb-710f-4a89-8cba-f9e07aaa12ff.png" alt="Logomarca"></div>
 </header>
 
 <nav>
-  <div class="categorias" id="categorias"></div>
-  <div class="pesquisa">
-    <input type="text" id="pesquisaInput" placeholder="Pesquisar produtos...">
-  </div>
+    <div class="categorias" id="categorias"></div>
+    <div class="pesquisa">
+        <input type="text" id="pesquisaInput" placeholder="Pesquisar produtos...">
+    </div>
 </nav>
 
 <div class="botao-carrinho" onclick="toggleCarrinho()">🛍️<span id="contadorCarrinho">0</span></div>
@@ -365,582 +376,589 @@
 <section id="produtos"></section>
 
 <div id="carrinho">
-  <h3>Sacola</h3>
-  <ul id="listaCarrinho"></ul>
-  <p id="espacototalCarrinho"><strong>Total: <span id="totalCarrinho">R$ 0,00</span></strong></p>
-  <button id="btfinalizarpedido" onclick="finalizarPedido()">Finalizar Pedido</button>
+    <h3>Sacola</h3>
+    <ul id="listaCarrinho"></ul>
+    <p id="espacototalCarrinho"><strong>Total: <span id="totalCarrinho">R$ 0,00</span></strong></p>
+    <button id="btfinalizarpedido" onclick="finalizarPedido()">Finalizar Pedido</button>
 </div>
 
 <div id="popupPedido">
-  <div class="popup-conteudo">
-    <h3>Finalizar Pedido</h3>
-    <label>Nome:
-      <input type="text" id="nomeCliente" />
-    </label>
-    <label>Endereço:
-      <input type="text" id="endereco" />
-    </label>
-    <label>Número da Casa:
-      <input type="text" id="numeroCasa" />
-    </label>
-    <label>Bairro:
-      <select id="bairroSelect">
-        <option value="">Selecione o bairro</option>
-      </select>
-    </label>
-    <label>Forma de Pagamento:
-      <select id="formaPagamento" onchange="toggleTrocoField()">
-        <option value="Dinheiro">Dinheiro</option>
-        <option value="Cartão de Crédito">Cartão de Crédito</option>
-        <option value="Cartão de Débito">Cartão de Débito</option>
-        <option value="Pix">Pix</option>
-      </select>
-    </label>
-    <label id="labelTroco" style="display:none;">Troco para quanto?
-      <input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
-    </label>
+    <div class="popup-conteudo">
+        <h3>Finalizar Pedido</h3>
+        <label>Nome:
+            <input type="text" id="nomeCliente" />
+        </label>
+        <label>Endereço:
+            <input type="text" id="endereco" />
+        </label>
+        <label>Número da Casa:
+            <input type="text" id="numeroCasa" />
+        </label>
+        <label>Bairro:
+            <select id="bairroSelect">
+                <option value="">Selecione o bairro</option>
+            </select>
+        </label>
+        <label>Forma de Pagamento:
+            <select id="formaPagamento" onchange="toggleTrocoField()">
+                <option value="Dinheiro">Dinheiro</option>
+                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                <option value="Cartão de Débito">Cartão de Débito</option>
+                <option value="Pix">Pix</option>
+            </select>
+        </label>
+        <label id="labelTroco" style="display:none;">Troco para quanto?
+            <input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
+        </label>
 
-    <p id="totalPedido" style="font-weight:bold; font-size:1.2rem; margin-top:5px;">
-      Total do Pedido: R$ 0,00
-    </p>
+        <p id="totalPedido" style="font-weight:bold; font-size:1.2rem; margin-top:5px;">
+            Total do Pedido: R$ 0,00
+        </p>
 
-    <div>
-      <button id="btenviarpedido" onclick="enviarPedido()">Enviar Pedido</button>
-      <button id="btcancelar" onclick="fecharPopup()">Cancelar</button>
+        <div>
+            <button id="btenviarpedido" onclick="enviarPedido()">Enviar Pedido</button>
+            <button id="btcancelar" onclick="fecharPopup()">Cancelar</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <div id="popupAdicionais">
-  <div class="popup-conteudo">
-    <h3 id="adicionalProdutoNome">Adicionais para [Nome do Produto]</h3>
-    <div id="listaAdicionais">
-      </div>
-    <p>
-      Total do Produto com Adicionais:
-      <strong id="totalProdutoComAdicionais">R$ 0,00</strong>
-    </p>
-    <div>
-      <button id="btAdicionarAoCarrinhoComAdicionais" onclick="adicionarAoCarrinhoComAdicionais()">Adicionar à Sacola</button>
-      <button id="btCancelarAdicionais" onclick="fecharPopupAdicionais()">Cancelar</button>
+    <div class="popup-conteudo">
+        <h3 id="adicionalProdutoNome">Adicionais para [Nome do Produto]</h3>
+        <div id="listaAdicionais">
+        </div>
+        <p>
+            Total do Produto com Adicionais:
+            <strong id="totalProdutoComAdicionais">R$ 0,00</strong>
+        </p>
+        <div>
+            <button id="btAdicionarAoCarrinhoComAdicionais" onclick="adicionarAoCarrinhoComAdicionais()">Adicionar à Sacola</button>
+            <button id="btCancelarAdicionais" onclick="fecharPopupAdicionais()">Cancelar</button>
+        </div>
     </div>
-  </div>
 </div>
 
 <footer>
-  <p>Siga-nos:
-    <a href="#" target="_blank">Instagram</a> |
-    <a href="#" target="_blank">Facebook</a> |
-    <a href="#" target="_blank">WhatsApp</a>
-  </p>
-  <p>Endereço: Rua Exemplo, 123 - Sua Cidade - Brasil</p>
+    <p>Siga-nos:
+        <a href="#" target="_blank">Instagram</a> |
+        <a href="#" target="_blank">Facebook</a> |
+        <a href="#" target="_blank">WhatsApp</a>
+    </p>
+    <p>Endereço: Rua Exemplo, 123 - Sua Cidade - Brasil</p>
 </footer>
 
 <script>
-const SHEET_URL_PRODUTOS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json";
-const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514"; // Substitua pelo link da aba de bairros
-// NOVA URL PARA ADICIONAIS
-const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706"; // <<<< ATENÇÃO! Substitua pelo GID correto da sua aba de adicionais
+    const SHEET_URL_PRODUTOS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json";
+    const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514"; // Substitua pelo link da aba de bairros
+    // NOVA URL PARA ADICIONAIS
+    const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706"; // <<<< ATENÇÃO! Substitua pelo GID correto da sua aba de adicionais
 
-let produtos = [];
-let bairrosEntrega = {};
-let adicionais = []; // Nova variável para armazenar os adicionais
-let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+    let produtos = [];
+    let bairrosEntrega = {};
+    let adicionais = []; // Nova variável para armazenar os adicionais
+    let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-// Variáveis temporárias para o produto atual e seus adicionais selecionados no popup
-let produtoSelecionadoParaAdicionais = null;
-let adicionaisSelecionadosTemp = [];
+    // Variáveis temporárias para o produto atual e seus adicionais selecionados no popup
+    let produtoSelecionadoParaAdicionais = null;
+    let adicionaisSelecionadosTemp = [];
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Carregar produtos
-  fetch(SHEET_URL_PRODUTOS)
-    .then(res => res.text())
-    .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-    .then(json => {
-      const rows = json.table.rows;
-      produtos = rows
-        .filter(row => row.c[0]?.v?.toLowerCase() === "sim")
-        .map(row => {
-          const c = row.c;
-          return {
-            nome: c[1]?.v,
-			categoria: c[2]?.v,
-            descricao: c[3]?.v,
-            preco: parseFloat(c[4]?.v),
-            tipoAdicional: c[5]?.v,
-			imagem: c[6]?.v
-          };
+    document.addEventListener("DOMContentLoaded", () => {
+        // Carregar produtos
+        fetch(SHEET_URL_PRODUTOS)
+            .then(res => res.text())
+            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+            .then(json => {
+                const rows = json.table.rows;
+                produtos = rows
+                    .filter(row => row.c[0]?.v?.toLowerCase() === "sim")
+                    .map(row => {
+                        const c = row.c;
+                        return {
+                            nome: c[1]?.v,
+                            categoria: c[2]?.v,
+                            descricao: c[3]?.v,
+                            preco: parseFloat(c[4]?.v),
+                            tipoAdicional: c[5]?.v,
+                            imagem: c[6]?.v
+                        };
+                    });
+                renderCategorias();
+                renderProdutos(produtos);
+                renderCarrinho();
+            });
+
+        // Carregar bairros e valores de entrega
+        fetch(SHEET_URL_BAIRROS)
+            .then(res => res.text())
+            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+            .then(json => {
+                const rows = json.table.rows;
+                bairrosEntrega = {};
+                const bairroSelect = document.getElementById("bairroSelect");
+                bairroSelect.innerHTML = '<option value="">Selecione o bairro</option>';
+
+                rows.forEach(row => {
+                    const c = row.c;
+                    const nomeBairro = c[0]?.v;
+                    const valorEntrega = parseFloat(c[1]?.v) || 0;
+                    bairrosEntrega[nomeBairro] = valorEntrega;
+
+                    const option = document.createElement("option");
+                    option.value = nomeBairro;
+                    option.textContent = `${nomeBairro} - R$ ${valorEntrega.toFixed(2).replace('.', ',')}`;
+                    bairroSelect.appendChild(option);
+                });
+            });
+
+        // Carregar adicionais
+        fetch(SHEET_URL_ADICIONAIS)
+            .then(res => res.text())
+            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+            .then(json => {
+                const rows = json.table.rows;
+                adicionais = rows.map(row => {
+                    const c = row.c;
+                    return {
+                        tipo: c[0]?.v,
+                        nome: c[1]?.v,
+                        preco: parseFloat(c[2]?.v) || 0
+                    };
+                });
+            });
+
+        document.getElementById("pesquisaInput").addEventListener("input", e => {
+            const termo = e.target.value.toLowerCase();
+            const filtrados = produtos.filter(p => p.nome.toLowerCase().includes(termo));
+            renderProdutos(filtrados);
         });
-      renderCategorias();
-      renderProdutos(produtos);
-      renderCarrinho();
+
+        // Atualizar total ao mudar bairro
+        document.getElementById("bairroSelect").addEventListener("change", () => {
+            mostrarValorEntrega(document.getElementById("bairroSelect").value);
+            atualizarTotalPedido();
+        });
+
+        // Mostrar/esconder campo troco ao mudar forma pagamento
+        document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
     });
 
-  // Carregar bairros e valores de entrega
-  fetch(SHEET_URL_BAIRROS)
-    .then(res => res.text())
-    .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-    .then(json => {
-      const rows = json.table.rows;
-      bairrosEntrega = {};
-      const bairroSelect = document.getElementById("bairroSelect");
-      bairroSelect.innerHTML = '<option value="">Selecione o bairro</option>';
+    function renderCategorias() {
+        const categoriasUnicas = [...new Set(produtos.map(p => p.categoria))];
+        categoriasUnicas.sort((a, b) => a.localeCompare(b));
+        const catContainer = document.getElementById("categorias");
+        catContainer.innerHTML = "";
 
-      rows.forEach(row => {
-        const c = row.c;
-        const nomeBairro = c[0]?.v;
-        const valorEntrega = parseFloat(c[1]?.v) || 0;
-        bairrosEntrega[nomeBairro] = valorEntrega;
+        const btnTodas = document.createElement("button");
+        btnTodas.textContent = "Todas";
+        btnTodas.onclick = () => renderProdutos(produtos);
+        catContainer.appendChild(btnTodas);
 
-        const option = document.createElement("option");
-        option.value = nomeBairro;
-        option.textContent = `${nomeBairro} - R$ ${valorEntrega.toFixed(2).replace('.', ',')}`;
-        bairroSelect.appendChild(option);
-      });
-    });
+        categoriasUnicas.forEach(cat => {
+            const btn = document.createElement("button");
+            btn.textContent = cat;
+            btn.onclick = () => {
+                const filtrados = produtos.filter(p => p.categoria === cat);
+                renderProdutos(filtrados);
+            };
+            catContainer.appendChild(btn);
+        });
+    }
 
-  // Carregar adicionais
-  fetch(SHEET_URL_ADICIONAIS)
-    .then(res => res.text())
-    .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-    .then(json => {
-      const rows = json.table.rows;
-      adicionais = rows.map(row => {
-        const c = row.c;
-        return {
-          tipo: c[0]?.v,
-          nome: c[1]?.v,
-          preco: parseFloat(c[2]?.v) || 0
+    function renderProdutos(lista) {
+        const container = document.getElementById("produtos");
+        container.innerHTML = "";
+
+        const categoriasMap = {};
+        lista.forEach(p => {
+            if (!categoriasMap[p.categoria]) {
+                categoriasMap[p.categoria] = [];
+            }
+            categoriasMap[p.categoria].push(p);
+        });
+
+        const categoriasOrdenadas = Object.keys(categoriasMap).sort((a, b) => a.localeCompare(b));
+
+        categoriasOrdenadas.forEach(categoria => {
+            const tituloCat = document.createElement("h2");
+            tituloCat.textContent = categoria;
+            tituloCat.style.width = "100%";
+            tituloCat.style.borderBottom = "2px solid #333";
+            tituloCat.style.margin = "1rem 0 0.5rem 0";
+            container.appendChild(tituloCat);
+
+            categoriasMap[categoria].sort((a, b) => a.nome.localeCompare(b.nome));
+
+            categoriasMap[categoria].forEach((p, index) => {
+                const id = `${categoria}_${index}`.replace(/\s+/g, "_");
+                const card = document.createElement("div");
+                card.className = "produto";
+                card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}">
+                    <h3>${p.nome}</h3>
+                    <p>${p.descricao}</p>
+                    <p><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
+                    <div class="quantidade-container">
+                        <button onclick="alterarQuantidade('subtrair', '${id}')">-</button>
+                        <span id="qtd_${id}">1</span>
+                        <button onclick="alterarQuantidade('adicionar', '${id}')">+</button>
+                    </div>
+                    <button onclick='prepararParaAdicionarCarrinho(${JSON.stringify(p).replace(/'/g, "\\'")}, "${id}")'>Adicionar</button>`;
+                container.appendChild(card);
+            });
+        });
+    }
+
+    function alterarQuantidade(acao, id) {
+        const span = document.getElementById(`qtd_${id}`);
+        let qtdAtual = parseInt(span.textContent);
+        if (acao === 'adicionar') {
+            qtdAtual += 1;
+        } else if (acao === 'subtrair' && qtdAtual > 1) {
+            qtdAtual -= 1;
+        }
+        span.textContent = qtdAtual;
+    }
+
+    // NOVA FUNÇÃO: Prepara o produto para adição (com ou sem adicionais)
+    function prepararParaAdicionarCarrinho(produto, id) {
+        const qtd = parseInt(document.getElementById(`qtd_${id}`).textContent);
+        if (qtd <= 0 || isNaN(qtd)) {
+            alert("Quantidade inválida!");
+            return;
+        }
+
+        // Reseta as variáveis temporárias e armazena o id original do span de quantidade
+        produtoSelecionadoParaAdicionais = { ...produto, quantidade: qtd, idOriginal: id };
+        adicionaisSelecionadosTemp = [];
+
+        // Verifica se o produto tem adicionais
+        if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
+            abrirPopupAdicionais(produto);
+        } else {
+            // Se não tiver adicionais, adiciona direto ao carrinho
+            adicionarAoCarrinhoFinal({
+                ...produtoSelecionadoParaAdicionais,
+                adicionais: [] // Adiciona uma array vazia para adicionais
+            });
+        }
+    }
+
+    // NOVA FUNÇÃO: Abre o popup de adicionais
+    function abrirPopupAdicionais(produto) {
+        document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
+
+        const listaAdicionaisDiv = document.getElementById("listaAdicionais");
+        listaAdicionaisDiv.innerHTML = "";
+
+        const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
+
+        if (adicionaisFiltrados.length === 0) {
+            // Se não houver adicionais para o tipo, adiciona o produto direto (caso haja erro na planilha)
+            adicionarAoCarrinhoFinal({
+                ...produtoSelecionadoParaAdicionais,
+                adicionais: []
+            });
+            return;
+        }
+
+        adicionaisFiltrados.forEach(adicional => {
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "adicional-item";
+            itemDiv.innerHTML =         `<label>
+                <input type="checkbox" data-nome="${adicional.nome}" data-preco="${adicional.preco.toFixed(2)}">
+                ${adicional.nome}
+            </label>
+            <span>+ ${adicional.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>`;
+            listaAdicionaisDiv.appendChild(itemDiv);
+        });
+
+        // Adiciona listeners para atualizar o total do popup
+        listaAdicionaisDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', atualizarTotalProdutoComAdicionais);
+        });
+
+        atualizarTotalProdutoComAdicionais(); // Calcula o total inicial
+        document.getElementById("popupAdicionais").classList.add("ativo");
+    }
+
+    // NOVA FUNÇÃO: Fecha o popup de adicionais
+    function fecharPopupAdicionais() {
+        document.getElementById("popupAdicionais").classList.remove("ativo");
+        produtoSelecionadoParaAdicionais = null;
+        adicionaisSelecionadosTemp = [];
+    }
+
+    // NOVA FUNÇÃO: Atualiza o total do produto no popup de adicionais
+    function atualizarTotalProdutoComAdicionais() {
+        let totalProduto = produtoSelecionadoParaAdicionais.preco;
+        adicionaisSelecionadosTemp = []; // Limpa e preenche novamente
+
+        document.querySelectorAll('#listaAdicionais input[type="checkbox"]:checked').forEach(checkbox => {
+            const nome = checkbox.dataset.nome;
+            const preco = parseFloat(checkbox.dataset.preco);
+            totalProduto += preco;
+            adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
+        });
+
+        const totalComAdicionais = totalProduto; // Não multiplica pela quantidade aqui
+        document.getElementById("totalProdutoComAdicionais").textContent = totalComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    }
+
+    // NOVA FUNÇÃO: Adiciona o produto (com ou sem adicionais) ao carrinho
+    function adicionarAoCarrinhoComAdicionais() {
+        const produtoComAdicionais = {
+            ...produtoSelecionadoParaAdicionais,
+            quantidade: produtoSelecionadoParaAdicionais.quantidade, // Usa a quantidade do produto base
+            adicionais: adicionaisSelecionadosTemp
         };
-      });
+        adicionarAoCarrinhoFinal(produtoComAdicionais);
+        fecharPopupAdicionais();
+    }
+
+    // NOVA FUNÇÃO: Adiciona o item ao carrinho final
+    function adicionarAoCarrinhoFinal(item) {
+        // Verifica se o item já existe no carrinho com os MESMOS adicionais
+        const itemExistenteIndex = carrinho.findIndex(carrinhoItem =>
+            carrinhoItem.nome === item.nome &&
+            JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais)
+        );
+
+        if (itemExistenteIndex > -1) {
+            // Se o item (com os mesmos adicionais) já existe, apenas aumenta a quantidade
+            carrinho[itemExistenteIndex].quantidade += item.quantidade;
+        } else {
+            // Caso contrário, adiciona o novo item
+            carrinho.push(item);
+        }
+
+        localStorage.setItem("carrinho", JSON.stringify(carrinho));
+        renderCarrinho();
+
+        // Redefine a quantidade do produto na interface para 1 após adicionar ao carrinho
+        const idProdutoAtual = produtoSelecionadoParaAdicionais.idOriginal;
+        if (idProdutoAtual) {
+            document.getElementById(`qtd_${idProdutoAtual}`).textContent = 1;
+        }
+
+        // Chamar atenção no botão do carrinho
+        const botaoCarrinho = document.querySelector(".botao-carrinho");
+        botaoCarrinho.classList.add("animate-cart");
+        setTimeout(() => {
+            botaoCarrinho.classList.remove("animate-cart");
+        }, 500); // Remove a classe após 0.5 segundos (tempo da animação)
+    }
+
+    function renderCarrinho() {
+        const lista = document.getElementById("listaCarrinho");
+        const contador = document.getElementById("contadorCarrinho");
+        const totalSpan = document.getElementById("totalCarrinho");
+        lista.innerHTML = "";
+        let totalItens = 0;
+        let valorTotal = 0;
+
+        carrinho.forEach((p, i) => {
+            totalItens += p.quantidade;
+            let precoItem = p.preco;
+            let descAdicionais = "";
+
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => {
+                    precoItem += ad.preco;
+                    descAdicionais += `\n        +${ad.nome} (${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`;
+                });
+            }
+
+            valorTotal += precoItem * p.quantidade;
+
+            const li = document.createElement("li");
+            li.innerHTML =         `<span>
+                <strong>${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
+                ${descAdicionais ? `<small>${descAdicionais}</small>` : ''}
+            </span>
+            <button onclick="removerItem(${i}, event)">X</button>`;
+            lista.appendChild(li);
+        });
+
+        contador.textContent = totalItens;
+        totalSpan.textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+
+        atualizarTotalPedido(); // Atualiza o total com entrega no popup também
+    }
+
+    function removerItem(index, event) {
+        event.stopPropagation();
+        carrinho.splice(index, 1);
+        localStorage.setItem("carrinho", JSON.stringify(carrinho));
+        renderCarrinho();
+    }
+
+    function toggleCarrinho() {
+        document.getElementById("carrinho").classList.toggle("ativo");
+    }
+
+    document.addEventListener("click", function (event) {
+        const carrinhoBox = document.getElementById("carrinho");
+        const botaoCarrinho = document.querySelector(".botao-carrinho");
+        const popupPedido = document.getElementById("popupPedido");
+        const popupAdicionais = document.getElementById("popupAdicionais"); // Novo
+
+        // Verifica se o clique foi fora do carrinho, do botão do carrinho e dos popups
+        if (
+            carrinhoBox.classList.contains("ativo") &&
+            !carrinhoBox.contains(event.target) &&
+            !botaoCarrinho.contains(event.target) &&
+            !popupPedido.contains(event.target) &&
+            !popupAdicionais.contains(event.target)
+        ) {
+            carrinhoBox.classList.remove("ativo");
+        }
     });
 
-  document.getElementById("pesquisaInput").addEventListener("input", e => {
-    const termo = e.target.value.toLowerCase();
-    const filtrados = produtos.filter(p => p.nome.toLowerCase().includes(termo));
-    renderProdutos(filtrados);
-  });
+    function finalizarPedido() {
+        if (carrinho.length === 0) {
+            alert("O carrinho está vazio!");
+            return;
+        }
 
-  // Atualizar total ao mudar bairro
-  document.getElementById("bairroSelect").addEventListener("change", () => {
-    mostrarValorEntrega(document.getElementById("bairroSelect").value);
-    atualizarTotalPedido();
-  });
+        document.getElementById("carrinho").classList.remove("ativo");
 
-  // Mostrar/esconder campo troco ao mudar forma pagamento
-  document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
-});
+        document.getElementById("nomeCliente").value = localStorage.getItem("nomeCliente") || "";
+        document.getElementById("endereco").value = localStorage.getItem("endereco") || "";
+        document.getElementById("numeroCasa").value = localStorage.getItem("numeroCasa") || "";
+        document.getElementById("bairroSelect").value = localStorage.getItem("bairro") || "";
+        document.getElementById("formaPagamento").value = localStorage.getItem("formaPagamento") || "Dinheiro";
 
-function renderCategorias() {
-  const categoriasUnicas = [...new Set(produtos.map(p => p.categoria))];
-  categoriasUnicas.sort((a, b) => a.localeCompare(b));
-  const catContainer = document.getElementById("categorias");
-  catContainer.innerHTML = "";
+        toggleTrocoField();
 
-  const btnTodas = document.createElement("button");
-  btnTodas.textContent = "Todas";
-  btnTodas.onclick = () => renderProdutos(produtos);
-  catContainer.appendChild(btnTodas);
+        atualizarTotalPedido();
 
-  categoriasUnicas.forEach(cat => {
-    const btn = document.createElement("button");
-    btn.textContent = cat;
-    btn.onclick = () => {
-      const filtrados = produtos.filter(p => p.categoria === cat);
-      renderProdutos(filtrados);
-    };
-    catContainer.appendChild(btn);
-  });
-}
-
-function renderProdutos(lista) {
-  const container = document.getElementById("produtos");
-  container.innerHTML = "";
-
-  const categoriasMap = {};
-  lista.forEach(p => {
-    if (!categoriasMap[p.categoria]) {
-      categoriasMap[p.categoria] = [];
-    }
-    categoriasMap[p.categoria].push(p);
-  });
-
-  const categoriasOrdenadas = Object.keys(categoriasMap).sort((a, b) => a.localeCompare(b));
-
-  categoriasOrdenadas.forEach(categoria => {
-    const tituloCat = document.createElement("h2");
-    tituloCat.textContent = categoria;
-    tituloCat.style.width = "100%";
-    tituloCat.style.borderBottom = "2px solid #333";
-    tituloCat.style.margin = "1rem 0 0.5rem 0";
-    container.appendChild(tituloCat);
-
-    categoriasMap[categoria].sort((a, b) => a.nome.localeCompare(b.nome));
-
-    categoriasMap[categoria].forEach((p, index) => {
-      const id = `${categoria}_${index}`.replace(/\s+/g, "_");
-      const card = document.createElement("div");
-      card.className = "produto";
-      card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}">
-        <h3>${p.nome}</h3>
-        <p>${p.descricao}</p>
-        <p><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
-        <div class="quantidade-container">
-          <button onclick="alterarQuantidade('subtrair', '${id}')">-</button>
-          <span id="qtd_${id}">1</span>
-          <button onclick="alterarQuantidade('adicionar', '${id}')">+</button>
-        </div>
-        <button onclick='prepararParaAdicionarCarrinho(${JSON.stringify(p).replace(/'/g, "\\'")}, "${id}")'>Adicionar</button>`;
-      container.appendChild(card);
-    });
-  });
-}
-
-function alterarQuantidade(acao, id) {
-  const span = document.getElementById(`qtd_${id}`);
-  let qtdAtual = parseInt(span.textContent);
-  if (acao === 'adicionar') {
-    qtdAtual += 1;
-  } else if (acao === 'subtrair' && qtdAtual > 1) {
-    qtdAtual -= 1;
-  }
-  span.textContent = qtdAtual;
-}
-
-// NOVA FUNÇÃO: Prepara o produto para adição (com ou sem adicionais)
-function prepararParaAdicionarCarrinho(produto, id) {
-  const qtd = parseInt(document.getElementById(`qtd_${id}`).textContent);
-  if (qtd <= 0 || isNaN(qtd)) {
-    alert("Quantidade inválida!");
-    return;
-  }
-
-  // Reseta as variáveis temporárias e armazena o id original do span de quantidade
-  produtoSelecionadoParaAdicionais = { ...produto, quantidade: qtd, idOriginal: id };
-  adicionaisSelecionadosTemp = [];
-
-  // Verifica se o produto tem adicionais
-  if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
-    abrirPopupAdicionais(produto);
-  } else {
-    // Se não tiver adicionais, adiciona direto ao carrinho
-    adicionarAoCarrinhoFinal({
-      ...produtoSelecionadoParaAdicionais,
-      adicionais: [] // Adiciona uma array vazia para adicionais
-    });
-  }
-}
-
-// NOVA FUNÇÃO: Abre o popup de adicionais
-function abrirPopupAdicionais(produto) {
-  document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
-
-  const listaAdicionaisDiv = document.getElementById("listaAdicionais");
-  listaAdicionaisDiv.innerHTML = "";
-
-  const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
-
-  if (adicionaisFiltrados.length === 0) {
-    // Se não houver adicionais para o tipo, adiciona o produto direto (caso haja erro na planilha)
-    adicionarAoCarrinhoFinal({
-        ...produtoSelecionadoParaAdicionais,
-        adicionais: []
-    });
-    return;
-  }
-
-  adicionaisFiltrados.forEach(adicional => {
-    const itemDiv = document.createElement("div");
-    itemDiv.className = "adicional-item";
-    itemDiv.innerHTML =       `<label>
-        <input type="checkbox" data-nome="${adicional.nome}" data-preco="${adicional.preco.toFixed(2)}">
-        ${adicional.nome}
-      </label>
-      <span>+ ${adicional.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>`;
-    listaAdicionaisDiv.appendChild(itemDiv);
-  });
-
-  // Adiciona listeners para atualizar o total do popup
-  listaAdicionaisDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-    checkbox.addEventListener('change', atualizarTotalProdutoComAdicionais);
-  });
-
-  atualizarTotalProdutoComAdicionais(); // Calcula o total inicial
-  document.getElementById("popupAdicionais").classList.add("ativo");
-}
-
-// NOVA FUNÇÃO: Fecha o popup de adicionais
-function fecharPopupAdicionais() {
-  document.getElementById("popupAdicionais").classList.remove("ativo");
-  produtoSelecionadoParaAdicionais = null;
-  adicionaisSelecionadosTemp = [];
-}
-
-// NOVA FUNÇÃO: Atualiza o total do produto no popup de adicionais
-function atualizarTotalProdutoComAdicionais() {
-  let totalProduto = produtoSelecionadoParaAdicionais.preco;
-  adicionaisSelecionadosTemp = []; // Limpa e preenche novamente
-
-  document.querySelectorAll('#listaAdicionais input[type="checkbox"]:checked').forEach(checkbox => {
-    const nome = checkbox.dataset.nome;
-    const preco = parseFloat(checkbox.dataset.preco);
-    totalProduto += preco;
-    adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
-  });
-
-  const totalComAdicionais = totalProduto; // Não multiplica pela quantidade aqui
-  document.getElementById("totalProdutoComAdicionais").textContent = totalComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
-
-// NOVA FUNÇÃO: Adiciona o produto (com ou sem adicionais) ao carrinho
-function adicionarAoCarrinhoComAdicionais() {
-  const produtoComAdicionais = {
-    ...produtoSelecionadoParaAdicionais,
-    quantidade: produtoSelecionadoParaAdicionais.quantidade, // Usa a quantidade do produto base
-    adicionais: adicionaisSelecionadosTemp
-  };
-  adicionarAoCarrinhoFinal(produtoComAdicionais);
-  fecharPopupAdicionais();
-}
-
-// NOVA FUNÇÃO: Adiciona o item ao carrinho final
-function adicionarAoCarrinhoFinal(item) {
-  // Verifica se o item já existe no carrinho com os MESMOS adicionais
-  const itemExistenteIndex = carrinho.findIndex(carrinhoItem =>
-    carrinhoItem.nome === item.nome &&
-    JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais)
-  );
-
-  if (itemExistenteIndex > -1) {
-    // Se o item (com os mesmos adicionais) já existe, apenas aumenta a quantidade
-    carrinho[itemExistenteIndex].quantidade += item.quantidade;
-  } else {
-    // Caso contrário, adiciona o novo item
-    carrinho.push(item);
-  }
-
-  localStorage.setItem("carrinho", JSON.stringify(carrinho));
-  renderCarrinho();
-
-  // Redefine a quantidade do produto na interface para 1 após adicionar ao carrinho
-  const idProdutoAtual = produtoSelecionadoParaAdicionais.idOriginal;
-  if (idProdutoAtual) {
-    document.getElementById(`qtd_${idProdutoAtual}`).textContent = 1;
-  }
-}
-
-function renderCarrinho() {
-  const lista = document.getElementById("listaCarrinho");
-  const contador = document.getElementById("contadorCarrinho");
-  const totalSpan = document.getElementById("totalCarrinho");
-  lista.innerHTML = "";
-  let totalItens = 0;
-  let valorTotal = 0;
-
-  carrinho.forEach((p, i) => {
-    totalItens += p.quantidade;
-    let precoItem = p.preco;
-    let descAdicionais = "";
-
-    if (p.adicionais && p.adicionais.length > 0) {
-      p.adicionais.forEach(ad => {
-        precoItem += ad.preco;
-        descAdicionais += `\n    +${ad.nome} (${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`;
-      });
+        document.getElementById("popupPedido").classList.add("ativo");
     }
 
-    valorTotal += precoItem * p.quantidade;
-
-    const li = document.createElement("li");
-    li.innerHTML =       `<span>
-        <strong>${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
-        ${descAdicionais ? `<small>${descAdicionais}</small>` : ''}
-      </span>
-      <button onclick="removerItem(${i}, event)">X</button>`;
-    lista.appendChild(li);
-  });
-
-  contador.textContent = totalItens;
-  totalSpan.textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
-  atualizarTotalPedido(); // Atualiza o total com entrega no popup também
-}
-
-function removerItem(index, event) {
-  event.stopPropagation();
-  carrinho.splice(index, 1);
-  localStorage.setItem("carrinho", JSON.stringify(carrinho));
-  renderCarrinho();
-}
-
-function toggleCarrinho() {
-  document.getElementById("carrinho").classList.toggle("ativo");
-}
-
-document.addEventListener("click", function (event) {
-  const carrinhoBox = document.getElementById("carrinho");
-  const botaoCarrinho = document.querySelector(".botao-carrinho");
-  const popupPedido = document.getElementById("popupPedido");
-  const popupAdicionais = document.getElementById("popupAdicionais"); // Novo
-
-  // Verifica se o clique foi fora do carrinho, do botão do carrinho e dos popups
-  if (
-    carrinhoBox.classList.contains("ativo") &&
-    !carrinhoBox.contains(event.target) &&
-    !botaoCarrinho.contains(event.target) &&
-    !popupPedido.contains(event.target) &&
-    !popupAdicionais.contains(event.target)
-  ) {
-    carrinhoBox.classList.remove("ativo");
-  }
-});
-
-function finalizarPedido() {
-  if (carrinho.length === 0) {
-    alert("O carrinho está vazio!");
-    return;
-  }
-
-  document.getElementById("carrinho").classList.remove("ativo");
-
-  document.getElementById("nomeCliente").value = localStorage.getItem("nomeCliente") || "";
-  document.getElementById("endereco").value = localStorage.getItem("endereco") || "";
-  document.getElementById("numeroCasa").value = localStorage.getItem("numeroCasa") || "";
-  document.getElementById("bairroSelect").value = localStorage.getItem("bairro") || "";
-  document.getElementById("formaPagamento").value = localStorage.getItem("formaPagamento") || "Dinheiro";
-
-  toggleTrocoField();
-
-  atualizarTotalPedido();
-
-  document.getElementById("popupPedido").classList.add("ativo");
-}
-
-function fecharPopup() {
-  document.getElementById("popupPedido").classList.remove("ativo");
-}
-
-function mostrarValorEntrega(bairro) {
-  // Pode ser usado para algum feedback visual (opcional)
-}
-
-function atualizarTotalPedido() {
-  const totalProdutosCalculado = carrinho.reduce((acc, p) => {
-    let precoComAdicionais = p.preco;
-    if (p.adicionais && p.adicionais.length > 0) {
-      p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
-    }
-    return acc + precoComAdicionais * p.quantidade;
-  }, 0);
-
-  const bairro = document.getElementById("bairroSelect").value;
-  const taxaEntrega = bairrosEntrega[bairro] || 0;
-  const total = totalProdutosCalculado + taxaEntrega;
-
-  const totalPedidoSpan = document.getElementById("totalPedido");
-  totalPedidoSpan.textContent = `Total do Pedido: R$ ${total.toFixed(2).replace('.', ',')}`;
-}
-
-function toggleTrocoField() {
-  const formaPagamento = document.getElementById("formaPagamento").value;
-  const labelTroco = document.getElementById("labelTroco");
-
-  if (formaPagamento === "Dinheiro") {
-    labelTroco.style.display = "block";
-  } else {
-    labelTroco.style.display = "none";
-    document.getElementById("troco").value = "";
-  }
-}
-
-function enviarPedido() {
-  const nome = document.getElementById("nomeCliente").value.trim();
-  const endereco = document.getElementById("endereco").value.trim();
-  const numeroCasa = document.getElementById("numeroCasa").value.trim();
-  const bairro = document.getElementById("bairroSelect").value;
-  const formaPagamento = document.getElementById("formaPagamento").value;
-  const troco = document.getElementById("troco").value.trim();
-
-  if (!nome || !endereco || !numeroCasa || !bairro || !formaPagamento) {
-    alert("Por favor, preencha todos os campos.");
-    return;
-  }
-
-  let totalPedidoFinal = 0; // Para calcular o total final que inclui adicionais
-  const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
-    let precoComAdicionais = p.preco;
-    if (p.adicionais && p.adicionais.length > 0) {
-      p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
-    }
-    return acc + precoComAdicionais * p.quantidade;
-  }, 0);
-
-  const taxaEntrega = bairrosEntrega[bairro] || 0;
-  totalPedidoFinal = totalProdutosComAdicionais + taxaEntrega;
-
-  if (formaPagamento === "Dinheiro") {
-    const trocoValor = parseFloat(troco.replace(',', '.'));
-
-    if (!troco || isNaN(trocoValor)) {
-      alert("Por favor, informe um valor válido para o troco.");
-      return;
+    function fecharPopup() {
+        document.getElementById("popupPedido").classList.remove("ativo");
     }
 
-    if (trocoValor < totalPedidoFinal) {
-      alert(`O valor para troco deve ser maior ou igual ao total da compra (${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`);
-      return;
+    function mostrarValorEntrega(bairro) {
+        // Pode ser usado para algum feedback visual (opcional)
     }
-  }
 
-  localStorage.setItem("nomeCliente", nome);
-  localStorage.setItem("endereco", endereco);
-  localStorage.setItem("numeroCasa", numeroCasa);
-  localStorage.setItem("bairro", bairro);
-  localStorage.setItem("formaPagamento", formaPagamento);
-  if (formaPagamento === "Dinheiro") {
-    localStorage.setItem("troco", troco);
-  } else {
-    localStorage.removeItem("troco");
-  }
+    function atualizarTotalPedido() {
+        const totalProdutosCalculado = carrinho.reduce((acc, p) => {
+            let precoComAdicionais = p.preco;
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
+            }
+            return acc + precoComAdicionais * p.quantidade;
+        }, 0);
 
-  let msg = `🛒 *Novo Pedido*\n`;
-  msg += `👤 *Nome:* ${nome}\n`;
-  msg += `📦 *Itens:*\n`;
+        const bairro = document.getElementById("bairroSelect").value;
+        const taxaEntrega = bairrosEntrega[bairro] || 0;
+        const total = totalProdutosCalculado + taxaEntrega;
 
-  carrinho.forEach(p => {
-    let precoUnitarioComAdicionais = p.preco;
-    let adicionaisTexto = "";
-    if (p.adicionais && p.adicionais.length > 0) {
-      p.adicionais.forEach(ad => {
-        precoUnitarioComAdicionais += ad.preco;
-        adicionaisTexto += `\n       + ${ad.nome} - ${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-      });
+        const totalPedidoSpan = document.getElementById("totalPedido");
+        totalPedidoSpan.textContent = `Total do Pedido: R$ ${total.toFixed(2).replace('.', ',')}`;
     }
-    msg += `🔹 ${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${adicionaisTexto}\n`;
-  });
 
-  msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-  msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-  msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-  if (formaPagamento === "Dinheiro") {
-    msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
-  } else {
-    msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
-  }
+    function toggleTrocoField() {
+        const formaPagamento = document.getElementById("formaPagamento").value;
+        const labelTroco = document.getElementById("labelTroco");
 
-  msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
+        if (formaPagamento === "Dinheiro") {
+            labelTroco.style.display = "block";
+        } else {
+            labelTroco.style.display = "none";
+            document.getElementById("troco").value = "";
+        }
+    }
 
-  msg += `✅ *Aguardo confirmação!*`;
+    function enviarPedido() {
+        const nome = document.getElementById("nomeCliente").value.trim();
+        const endereco = document.getElementById("endereco").value.trim();
+        const numeroCasa = document.getElementById("numeroCasa").value.trim();
+        const bairro = document.getElementById("bairroSelect").value;
+        const formaPagamento = document.getElementById("formaPagamento").value;
+        const troco = document.getElementById("troco").value.trim();
 
-  const telefone = "5585986071807";
-  const url = `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
-  window.open(url, "_blank");
+        if (!nome || !endereco || !numeroCasa || !bairro || !formaPagamento) {
+            alert("Por favor, preencha todos os campos.");
+            return;
+        }
 
-  carrinho = [];
-  localStorage.removeItem("carrinho");
-  renderCarrinho();
-  fecharPopup();
-}
+        let totalPedidoFinal = 0; // Para calcular o total final que inclui adicionais
+        const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
+            let precoComAdicionais = p.preco;
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
+            }
+            return acc + precoComAdicionais * p.quantidade;
+        }, 0);
+
+        const taxaEntrega = bairrosEntrega[bairro] || 0;
+        totalPedidoFinal = totalProdutosComAdicionais + taxaEntrega;
+
+        if (formaPagamento === "Dinheiro") {
+            const trocoValor = parseFloat(troco.replace(',', '.'));
+
+            if (!troco || isNaN(trocoValor)) {
+                alert("Por favor, informe um valor válido para o troco.");
+                return;
+            }
+
+            if (trocoValor < totalPedidoFinal) {
+                alert(`O valor para troco deve ser maior ou igual ao total da compra (${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`);
+                return;
+            }
+        }
+
+        localStorage.setItem("nomeCliente", nome);
+        localStorage.setItem("endereco", endereco);
+        localStorage.setItem("numeroCasa", numeroCasa);
+        localStorage.setItem("bairro", bairro);
+        localStorage.setItem("formaPagamento", formaPagamento);
+        if (formaPagamento === "Dinheiro") {
+            localStorage.setItem("troco", troco);
+        } else {
+            localStorage.removeItem("troco");
+        }
+
+        let msg = `🛒 *Novo Pedido*\n`;
+        msg += `👤 *Nome:* ${nome}\n`;
+        msg += `📦 *Itens:*\n`;
+
+        carrinho.forEach(p => {
+            let precoUnitarioComAdicionais = p.preco;
+            let adicionaisTexto = "";
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => {
+                    precoUnitarioComAdicionais += ad.preco;
+                    adicionaisTexto += `\n        + ${ad.nome} - ${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                });
+            }
+            msg += `🔹 ${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${adicionaisTexto}\n`;
+        });
+
+        msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        if (formaPagamento === "Dinheiro") {
+            msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+        } else {
+            msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+        }
+
+        msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
+
+        msg += `✅ *Aguardo confirmação!*`;
+
+        const telefone = "5585986071807";
+        const url = `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
+        window.open(url, "_blank");
+
+        carrinho = [];
+        localStorage.removeItem("carrinho");
+        renderCarrinho();
+        fecharPopup();
+    }
 </script>
 
 </body>
