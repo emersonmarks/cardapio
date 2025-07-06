@@ -185,13 +185,17 @@
       display: none;
     }
 
+    #espacototalCarrinho{
+      margin-top: 0.5rem;    
+    }
+	  
     #carrinho h3{
       border-bottom: 2px solid rgb(51, 51, 51);
       margin-bottom: 10px;
     }
 
     #listaCarrinho {
-      max-height: 270px; /* ajuste conforme necessário */
+      max-height: 280px; /* ajuste conforme necessário */
       overflow-y: auto;
       padding-right: 8px; /* para evitar que o texto fique escondido sob a barra de rolagem */
     }
@@ -385,7 +389,7 @@
 <div id="carrinho">
   <h3>Sacola</h3>
   <ul id="listaCarrinho"></ul>
-  <p><strong>Total: <span id="totalCarrinho">R$ 0,00</span></strong></p>
+  <p id="espacototalCarrinho"><strong>Total: <span id="totalCarrinho">R$ 0,00</span></strong></p>
   <button id="btfinalizarpedido" onclick="finalizarPedido()">Finalizar Pedido</button>
 </div>
 
