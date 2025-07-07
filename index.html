@@ -40,8 +40,8 @@
             flex-wrap: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            padding-bottom: 7px; /* espaço interno */
-            margin-bottom: 4px; /* "empurra" a barra para fora um pouco */
+            padding-bottom: 6px; /* espaço interno */
+            margin-bottom: 2px; /* "empurra" a barra para fora um pouco */
         }
 
         .categorias::-webkit-scrollbar {
@@ -425,6 +425,7 @@
 <div id="popupAdicionais">
     <div class="popup-conteudo">
         <h3 id="adicionalProdutoNome">Adicionais para [Nome do Produto]</h3>
+        <p id="adicionalLimitText" style="font-size: 0.9em; color: #666; margin-top: -5px; margin-bottom: 10px;"></p>
         <div id="listaAdicionais">
         </div>
         <p>
@@ -452,7 +453,7 @@
     const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514";
     const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
     // Mantenha este URL com o ID da sua planilha, e substitua pelo URL do seu Apps Script implantado
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdR8532O3nts6SCCdPbltEUvyxTv5IBFT9yEIECKHevl9lDJpCcVzMDK26L_f_wa72uQ/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdR8532O3nts6SCCdPbltEUvyxTv5IBFT9yEIECKHevl9lDJC0L_f_wa72uQ/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
 
     let produtos = [];
     let bairrosEntrega = {};
@@ -478,7 +479,8 @@
                             descricao: c[3]?.v,
                             preco: parseFloat(c[4]?.v),
                             tipoAdicional: c[5]?.v,
-                            imagem: c[6]?.v
+                            imagem: c[7]?.v,
+                            maxAdicionais: parseInt(c[6]?.v) || 999 // New: maxAdicionais
                         };
                     });
                 renderCategorias();
@@ -635,6 +637,13 @@
 
     function abrirPopupAdicionais(produto) {
         document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
+        const adicionalLimitText = document.getElementById("adicionalLimitText");
+        if (produto.maxAdicionais && produto.maxAdicionais !== 999) {
+            adicionalLimitText.textContent = `Selecione até ${produto.maxAdicionais} adicional(is).`;
+        } else {
+            adicionalLimitText.textContent = "";
+        }
+
 
         const listaAdicionaisDiv = document.getElementById("listaAdicionais");
         listaAdicionaisDiv.innerHTML = "";
@@ -678,18 +687,52 @@
         let totalProduto = produtoSelecionadoParaAdicionais.preco;
         adicionaisSelecionadosTemp = [];
 
-        document.querySelectorAll('#listaAdicionais input[type="checkbox"]:checked').forEach(checkbox => {
-            const nome = checkbox.dataset.nome;
-            const preco = parseFloat(checkbox.dataset.preco);
-            totalProduto += preco;
-            adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
+        const checkboxes = document.querySelectorAll('#listaAdicionais input[type="checkbox"]');
+        let selectedCount = 0;
+
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                selectedCount++;
+            }
         });
+
+        const maxAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
+
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                const nome = checkbox.dataset.nome;
+                const preco = parseFloat(checkbox.dataset.preco);
+                totalProduto += preco;
+                adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
+            } else if (selectedCount >= maxAllowed && maxAllowed !== 999) {
+                checkbox.disabled = true;
+            } else {
+                checkbox.disabled = false;
+            }
+        });
+
+        // Update the limit message
+        const adicionalLimitText = document.getElementById("adicionalLimitText");
+        if (maxAllowed !== 999) {
+            adicionalLimitText.textContent = `Selecione até ${maxAllowed} adicional(is). Selecionados: ${selectedCount}`;
+            if (selectedCount >= maxAllowed) {
+                adicionalLimitText.style.color = "red";
+            } else {
+                adicionalLimitText.style.color = "#666";
+            }
+        }
 
         const totalComAdicionais = totalProduto;
         document.getElementById("totalProdutoComAdicionais").textContent = totalComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
     function adicionarAoCarrinhoComAdicionais() {
+        const maxAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
+        if (adicionaisSelecionadosTemp.length > maxAllowed && maxAllowed !== 999) {
+            alert(`Você pode selecionar no máximo ${maxAllowed} adicional(is) para este produto.`);
+            return;
+        }
+
         const produtoComAdicionais = {
             ...produtoSelecionadoParaAdicionais,
             quantidade: produtoSelecionadoParaAdicionais.quantidade,
@@ -919,8 +962,7 @@
                 });
             }
             detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe}\n`;
-			<!-- detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe} = R$${(precoUnitarioComAdicionais * p.quantidade).toFixed(2).replace('.', ',')}\n`; -->
-        });
+			});
         detalhesPedidoString = detalhesPedidoString.trim();
 
         try {
