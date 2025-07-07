@@ -449,21 +449,20 @@
 
 <script>
     const SHEET_URL_PRODUTOS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json";
-    const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514"; // Substitua pelo link da aba de bairros
-    // NOVA URL PARA ADICIONAIS
-    const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706"; // <<<< ATENÇÃO! Substitua pelo GID correto da sua aba de adicionais
+    const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514";
+    const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
+    // Mantenha este URL com o ID da sua planilha, e substitua pelo URL do seu Apps Script implantado
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdR8532O3nts6SCCdPbltEUvyxTv5IBFT9yEIECKHevl9lDJpCcVzMDK26L_f_wa72uQ/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
 
     let produtos = [];
     let bairrosEntrega = {};
-    let adicionais = []; // Nova variável para armazenar os adicionais
+    let adicionais = [];
     let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
 
-    // Variáveis temporárias para o produto atual e seus adicionais selecionados no popup
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
 
     document.addEventListener("DOMContentLoaded", () => {
-        // Carregar produtos
         fetch(SHEET_URL_PRODUTOS)
             .then(res => res.text())
             .then(text => JSON.parse(text.substr(47).slice(0, -2)))
@@ -487,7 +486,6 @@
                 renderCarrinho();
             });
 
-        // Carregar bairros e valores de entrega
         fetch(SHEET_URL_BAIRROS)
             .then(res => res.text())
             .then(text => JSON.parse(text.substr(47).slice(0, -2)))
@@ -510,7 +508,6 @@
                 });
             });
 
-        // Carregar adicionais
         fetch(SHEET_URL_ADICIONAIS)
             .then(res => res.text())
             .then(text => JSON.parse(text.substr(47).slice(0, -2)))
@@ -532,13 +529,11 @@
             renderProdutos(filtrados);
         });
 
-        // Atualizar total ao mudar bairro
         document.getElementById("bairroSelect").addEventListener("change", () => {
             mostrarValorEntrega(document.getElementById("bairroSelect").value);
             atualizarTotalPedido();
         });
 
-        // Mostrar/esconder campo troco ao mudar forma pagamento
         document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
     });
 
@@ -618,7 +613,6 @@
         span.textContent = qtdAtual;
     }
 
-    // NOVA FUNÇÃO: Prepara o produto para adição (com ou sem adicionais)
     function prepararParaAdicionarCarrinho(produto, id) {
         const qtd = parseInt(document.getElementById(`qtd_${id}`).textContent);
         if (qtd <= 0 || isNaN(qtd)) {
@@ -626,23 +620,19 @@
             return;
         }
 
-        // Reseta as variáveis temporárias e armazena o id original do span de quantidade
         produtoSelecionadoParaAdicionais = { ...produto, quantidade: qtd, idOriginal: id };
         adicionaisSelecionadosTemp = [];
 
-        // Verifica se o produto tem adicionais
         if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
             abrirPopupAdicionais(produto);
         } else {
-            // Se não tiver adicionais, adiciona direto ao carrinho
             adicionarAoCarrinhoFinal({
                 ...produtoSelecionadoParaAdicionais,
-                adicionais: [] // Adiciona uma array vazia para adicionais
+                adicionais: []
             });
         }
     }
 
-    // NOVA FUNÇÃO: Abre o popup de adicionais
     function abrirPopupAdicionais(produto) {
         document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
 
@@ -652,7 +642,6 @@
         const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
 
         if (adicionaisFiltrados.length === 0) {
-            // Se não houver adicionais para o tipo, adiciona o produto direto (caso haja erro na planilha)
             adicionarAoCarrinhoFinal({
                 ...produtoSelecionadoParaAdicionais,
                 adicionais: []
@@ -671,26 +660,23 @@
             listaAdicionaisDiv.appendChild(itemDiv);
         });
 
-        // Adiciona listeners para atualizar o total do popup
         listaAdicionaisDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', atualizarTotalProdutoComAdicionais);
+            checkbox.addEventListener('change', actualizarTotalProdutoComAdicionais);
         });
 
-        atualizarTotalProdutoComAdicionais(); // Calcula o total inicial
+        actualizarTotalProdutoComAdicionais();
         document.getElementById("popupAdicionais").classList.add("ativo");
     }
 
-    // NOVA FUNÇÃO: Fecha o popup de adicionais
     function fecharPopupAdicionais() {
         document.getElementById("popupAdicionais").classList.remove("ativo");
         produtoSelecionadoParaAdicionais = null;
         adicionaisSelecionadosTemp = [];
     }
 
-    // NOVA FUNÇÃO: Atualiza o total do produto no popup de adicionais
-    function atualizarTotalProdutoComAdicionais() {
+    function actualizarTotalProdutoComAdicionais() {
         let totalProduto = produtoSelecionadoParaAdicionais.preco;
-        adicionaisSelecionadosTemp = []; // Limpa e preenche novamente
+        adicionaisSelecionadosTemp = [];
 
         document.querySelectorAll('#listaAdicionais input[type="checkbox"]:checked').forEach(checkbox => {
             const nome = checkbox.dataset.nome;
@@ -699,52 +685,45 @@
             adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
         });
 
-        const totalComAdicionais = totalProduto; // Não multiplica pela quantidade aqui
+        const totalComAdicionais = totalProduto;
         document.getElementById("totalProdutoComAdicionais").textContent = totalComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
 
-    // NOVA FUNÇÃO: Adiciona o produto (com ou sem adicionais) ao carrinho
     function adicionarAoCarrinhoComAdicionais() {
         const produtoComAdicionais = {
             ...produtoSelecionadoParaAdicionais,
-            quantidade: produtoSelecionadoParaAdicionais.quantidade, // Usa a quantidade do produto base
+            quantidade: produtoSelecionadoParaAdicionais.quantidade,
             adicionais: adicionaisSelecionadosTemp
         };
         adicionarAoCarrinhoFinal(produtoComAdicionais);
         fecharPopupAdicionais();
     }
 
-    // NOVA FUNÇÃO: Adiciona o item ao carrinho final
     function adicionarAoCarrinhoFinal(item) {
-        // Verifica se o item já existe no carrinho com os MESMOS adicionais
         const itemExistenteIndex = carrinho.findIndex(carrinhoItem =>
             carrinhoItem.nome === item.nome &&
             JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais)
         );
 
         if (itemExistenteIndex > -1) {
-            // Se o item (com os mesmos adicionais) já existe, apenas aumenta a quantidade
             carrinho[itemExistenteIndex].quantidade += item.quantidade;
         } else {
-            // Caso contrário, adiciona o novo item
             carrinho.push(item);
         }
 
         localStorage.setItem("carrinho", JSON.stringify(carrinho));
         renderCarrinho();
 
-        // Redefine a quantidade do produto na interface para 1 após adicionar ao carrinho
         const idProdutoAtual = produtoSelecionadoParaAdicionais.idOriginal;
         if (idProdutoAtual) {
             document.getElementById(`qtd_${idProdutoAtual}`).textContent = 1;
         }
 
-        // Chamar atenção no botão do carrinho
         const botaoCarrinho = document.querySelector(".botao-carrinho");
         botaoCarrinho.classList.add("animate-cart");
         setTimeout(() => {
             botaoCarrinho.classList.remove("animate-cart");
-        }, 500); // Remove a classe após 0.5 segundos (tempo da animação)
+        }, 500);
     }
 
     function renderCarrinho() {
@@ -781,7 +760,7 @@
         contador.textContent = totalItens;
         totalSpan.textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-        atualizarTotalPedido(); // Atualiza o total com entrega no popup também
+        atualizarTotalPedido();
     }
 
     function removerItem(index, event) {
@@ -799,9 +778,8 @@
         const carrinhoBox = document.getElementById("carrinho");
         const botaoCarrinho = document.querySelector(".botao-carrinho");
         const popupPedido = document.getElementById("popupPedido");
-        const popupAdicionais = document.getElementById("popupAdicionais"); // Novo
+        const popupAdicionais = document.getElementById("popupAdicionais");
 
-        // Verifica se o clique foi fora do carrinho, do botão do carrinho e dos popups
         if (
             carrinhoBox.classList.contains("ativo") &&
             !carrinhoBox.contains(event.target) &&
@@ -871,7 +849,12 @@
         }
     }
 
-    function enviarPedido() {
+    async function enviarPedido() {
+        const btnEnviarPedido = document.getElementById("btenviarpedido");
+
+        // Immediately disable the button to prevent multiple clicks
+        btnEnviarPedido.disabled = true;
+
         const nome = document.getElementById("nomeCliente").value.trim();
         const endereco = document.getElementById("endereco").value.trim();
         const numeroCasa = document.getElementById("numeroCasa").value.trim();
@@ -879,12 +862,14 @@
         const formaPagamento = document.getElementById("formaPagamento").value;
         const troco = document.getElementById("troco").value.trim();
 
+        // Basic client-side validation
         if (!nome || !endereco || !numeroCasa || !bairro || !formaPagamento) {
             alert("Por favor, preencha todos os campos.");
+            btnEnviarPedido.disabled = false; // Re-enable if validation fails
             return;
         }
 
-        let totalPedidoFinal = 0; // Para calcular o total final que inclui adicionais
+        let totalPedidoFinal = 0;
         const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
             let precoComAdicionais = p.preco;
             if (p.adicionais && p.adicionais.length > 0) {
@@ -901,11 +886,13 @@
 
             if (!troco || isNaN(trocoValor)) {
                 alert("Por favor, informe um valor válido para o troco.");
+                btnEnviarPedido.disabled = false; // Re-enable if validation fails
                 return;
             }
 
             if (trocoValor < totalPedidoFinal) {
                 alert(`O valor para troco deve ser maior ou igual ao total da compra (${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`);
+                btnEnviarPedido.disabled = false; // Re-enable if validation fails
                 return;
             }
         }
@@ -921,43 +908,88 @@
             localStorage.removeItem("troco");
         }
 
-        let msg = `🛒 *Novo Pedido*\n`;
-        msg += `👤 *Nome:* ${nome}\n`;
-        msg += `📦 *Itens:*\n`;
-
+        let detalhesPedidoString = "";
         carrinho.forEach(p => {
             let precoUnitarioComAdicionais = p.preco;
-            let adicionaisTexto = "";
+            let adicionaisTextoDetalhe = "";
             if (p.adicionais && p.adicionais.length > 0) {
                 p.adicionais.forEach(ad => {
                     precoUnitarioComAdicionais += ad.preco;
-                    adicionaisTexto += `\n        + ${ad.nome} - ${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    adicionaisTextoDetalhe += ` + ${ad.nome} (R$${(ad.preco * p.quantidade).toFixed(2).replace('.', ',')})`;
                 });
             }
-            msg += `🔹 ${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${adicionaisTexto}\n`;
+            detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe}\n`;
+			<!-- detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe} = R$${(precoUnitarioComAdicionais * p.quantidade).toFixed(2).replace('.', ',')}\n`; -->
         });
+        detalhesPedidoString = detalhesPedidoString.trim();
 
-        msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-        msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-        msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-        if (formaPagamento === "Dinheiro") {
-            msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
-        } else {
-            msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+        try {
+            // Send to Google Apps Script (to save to the spreadsheet)
+            await fetch(APPS_SCRIPT_WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    nomeCliente: nome,
+                    endereco: endereco,
+                    numeroCasa: numeroCasa,
+                    bairro: bairro,
+                    formaPagamento: formaPagamento,
+                    troco: formaPagamento === "Dinheiro" ? parseFloat(troco) : 0,
+                    totalPedido: totalPedidoFinal,
+                    detalhesPedido: detalhesPedidoString
+                }),
+            });
+
+            console.log("Requisição para salvar pedido enviada.");
+
+            // Send to WhatsApp (existing code)
+            let msg = `🛒 *Novo Pedido*\n`;
+            msg += `👤 *Nome:* ${nome}\n`;
+            msg += `📦 *Itens:*\n`;
+
+            carrinho.forEach(p => {
+                let precoUnitarioComAdicionais = p.preco;
+                let adicionaisTexto = "";
+                if (p.adicionais && p.adicionais.length > 0) {
+                    p.adicionais.forEach(ad => {
+                        precoUnitarioComAdicionais += ad.preco;
+                        adicionaisTexto += `\n        + ${ad.nome} - ${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    });
+                }
+                msg += `🔹 ${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${adicionaisTexto}\n`;
+            });
+
+            msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            if (formaPagamento === "Dinheiro") {
+                msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+            } else {
+                msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+            }
+
+            msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
+            msg += `✅ *Aguardo confirmação!*`;
+
+            const telefone = "5585986071807";
+            const url = `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
+            window.open(url, "_blank");
+
+            carrinho = [];
+            localStorage.removeItem("carrinho");
+            renderCarrinho();
+            fecharPopup();
+
+        } catch (error) {
+            console.error("Erro ao enviar pedido:", error);
+            alert("Erro ao finalizar o pedido. Por favor, tente novamente.");
+        } finally {
+            // Re-enable the button regardless of success or failure
+            btnEnviarPedido.disabled = false;
         }
-
-        msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
-
-        msg += `✅ *Aguardo confirmação!*`;
-
-        const telefone = "5585986071807";
-        const url = `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
-        window.open(url, "_blank");
-
-        carrinho = [];
-        localStorage.removeItem("carrinho");
-        renderCarrinho();
-        fecharPopup();
     }
 </script>
 
