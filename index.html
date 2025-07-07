@@ -425,7 +425,7 @@
 <div id="popupAdicionais">
     <div class="popup-conteudo">
         <h3 id="adicionalProdutoNome">Adicionais para [Nome do Produto]</h3>
-        <p id="adicionalLimitText" style="font-size: 0.9em; color: #666; margin-top: -5px;"></p>
+        <p id="adicionalLimitText" style="font-size: 0.9em; color: #666; margin-top: -5px; margin-bottom: 10px;"></p>
         <div id="listaAdicionais">
         </div>
         <p>
@@ -453,7 +453,7 @@
     const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514";
     const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
     // Mantenha este URL com o ID da sua planilha, e substitua pelo URL do seu Apps Script implantado
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxdR8532O3nts6SCCdPbltEUvyxTv5IBFT9yEIECKHevl9lDJC0L_f_wa72uQ/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOxxBresg41yDeNplHpUNj3h2CiWBNf2HGWBvQdITjBF_HUfBCq4NwUm97dzrT6NrIOg/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
 
     let produtos = [];
     let bairrosEntrega = {};
@@ -639,7 +639,7 @@
         document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
         const adicionalLimitText = document.getElementById("adicionalLimitText");
         if (produto.maxAdicionais && produto.maxAdicionais !== 999) {
-            adicionalLimitText.textContent = `Escolha até ${produto.maxAdicionais} opções.`;
+            adicionalLimitText.textContent = `Selecione até ${produto.maxAdicionais} adicional(is).`;
         } else {
             adicionalLimitText.textContent = "";
         }
@@ -714,7 +714,7 @@
         // Update the limit message
         const adicionalLimitText = document.getElementById("adicionalLimitText");
         if (maxAllowed !== 999) {
-            adicionalLimitText.textContent = `Escolha até ${maxAllowed} opções. Selecionados: ${selectedCount}`;
+            adicionalLimitText.textContent = `Selecione até ${maxAllowed} adicional(is). Selecionados: ${selectedCount}`;
             if (selectedCount >= maxAllowed) {
                 adicionalLimitText.style.color = "red";
             } else {
