@@ -245,11 +245,27 @@
             padding: 0.3rem 0.5rem;
         }
 
+		.footer-margem{
+		    padding: 1rem;
+		}
+		
+		.footer-margem p{
+		    margin-bottom: 6px;
+		}
+		
+		#footer-store-name{
+		font-size: 20px;
+		}
+		
+		.footer-desenvolvido{
+		background-color: #000;
+		padding: 0.5rem 0.5rem;
+		}
+
         footer {
             background: #333;
             color: white;
-            text-align: center;
-            padding: 1rem;
+            text-align: center;           
             margin-top: 2rem;
         }
 
@@ -309,12 +325,12 @@
             pointer-events: auto;
         }
 
-        #popupAdicionais .popup-conteudo, .popup-conteudo {
+        .popup-conteudo {
             background: white;
             padding: 20px;
             border-radius: 8px;
             width: 80%;
-            max-width: 400px;
+            max-width: 500px;
             max-height: 90vh; /* Limita a altura para rolagem */
             overflow-y: auto; /* Adiciona barra de rolagem se necessário */
             display: flex;
@@ -357,12 +373,67 @@
             font-weight: bold;
         }
 
+        /* Novo estilo para o popup de loja fechada */
+        #popupLojaFechada {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999; /* Garante que fique por cima de tudo */
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        #popupLojaFechada.ativo {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #popupLojaFechada .popup-conteudo {
+            text-align: center;
+        }
+
+        #popupLojaFechada.ativo .popup-conteudo {
+            transform: scale(1);
+        }
+
+        #popupLojaFechada h3 {
+            color: #d9534f;
+            margin-bottom: 15px;
+            font-size: 1.8rem;
+        }
+
+        #popupLojaFechada p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        #popupLojaFechada button {
+            background: #ff7800;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        #popupLojaFechada button:hover {
+            background: #e66a00;
+        }
     </style>
 </head>
 <body>
 
 <header>
-    <div id="logo"><img src="https://files.nextgocard.com.br/brands/f05d96cb-710f-4a89-8cba-f9e07aaa12ff.png" alt="Logomarca"></div>
+    <div id="logo"><img id="logo-img"></div>
 </header>
 
 <nav>
@@ -440,31 +511,57 @@
     </div>
 </div>
 
+<div id="popupLojaFechada">
+    <div class="popup-conteudo">
+        <h3>Loja Fechada!</h3>
+        <p id="mensagemHorario"></p>
+        <button onclick="fecharPopupLojaFechada()">Entendi</button>
+    </div>
+</div>
+
 <footer>
+  <div class="footer-margem">
+    <p id="footer-store-name"></p>
     <p>Siga-nos:
-        <a href="#" target="_blank">Instagram</a> |
-        <a href="#" target="_blank">Facebook</a> |
-        <a href="#" target="_blank">WhatsApp</a>
+        <a id="instagram-link" href="#" target="_blank">Instagram</a> |
+        <a id="facebook-link" href="#" target="_blank">Facebook</a> |
+        <a id="whatsapp-link" href="#" target="_blank">WhatsApp</a>
     </p>
-    <p>Endereço: Rua Exemplo, 123 - Sua Cidade - Brasil</p>
+    <p id="footer-address"></p>
+    <p id="footer-contact-phones"></p>
+  </div>
+  <div class="footer-desenvolvido">
+    <p>Desenvolvido por: <a href="#" target="_blank">Emerson Marks</a></p>
+  </div>
 </footer>
 
 <script>
-    const SHEET_URL_PRODUTOS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json";
+    const SHEET_URL_PRODUTOS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=0";
     const SHEET_URL_BAIRROS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=498087514";
     const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
-    // Mantenha este URL com o ID da sua planilha, e substitua pelo URL do seu Apps Script implantado
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOxxBresg41yDeNplHpUNj3h2CiWBNf2HGWBvQdITjBF_HUfBCq4NwUm97dzrT6NrIOg/exec"; // <<<<< COLOQUE A URL DO SEU WEB APP AQUI
-
+    const SHEET_URL_CONFIGURACOES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1791928589";
+    const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOxxBresg41yDeNplHpUNj3h2CiWBNf2HGWBvQdITjBF_HUfBCq4NwUm97dzrT6NrIOg/exec";
+	
     let produtos = [];
     let bairrosEntrega = {};
     let adicionais = [];
     let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
+    let horarioFuncionamento = {}; // Para armazenar os horários de funcionamento
+    let isLojaAbertaStatus = false; // Nova variável para rastrear o status da loja
+    let categoriasOrdem = []; // Para armazenar a ordem das categorias
 
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
 
-    document.addEventListener("DOMContentLoaded", () => {
+    const diasDaSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        // Carrega as configurações (logo, redes sociais, endereço, NOME DA LOJA, TELEFONES) e horários de funcionamento
+        await fetchConfiguracoes();
+        await fetchCategoriasOrdem(); // Fetch the category order
+        checkHorarioFuncionamento(); // Chama para definir isLojaAbertaStatus e exibir popup inicial
+
         fetch(SHEET_URL_PRODUTOS)
             .then(res => res.text())
             .then(text => JSON.parse(text.substr(47).slice(0, -2)))
@@ -481,10 +578,10 @@
                             preco: parseFloat(c[4]?.v),
                             tipoAdicional: c[5]?.v,
                             imagem: c[7]?.v,
-                            maxAdicionais: parseInt(c[6]?.v) || 999 // New: maxAdicionais
+                            maxAdicionais: parseInt(c[6]?.v) || 999
                         };
                     });
-                renderCategorias();
+                renderCategorias(); // Now `renderCategorias` will use the fetched order
                 renderProdutos(produtos);
                 renderCarrinho();
             });
@@ -540,9 +637,190 @@
         document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
     });
 
+    async function fetchConfiguracoes() {
+        try {
+            const response = await fetch(SHEET_URL_CONFIGURACOES);
+            const text = await response.text();
+            const json = JSON.parse(text.substr(47).slice(0, -2));
+            const rows = json.table.rows;
+
+            if (rows.length > 0) {
+                const configRow = rows[0].c;
+
+                // Nome da Loja (Coluna A, índice 0)
+                const storeName = configRow[0]?.v;
+                if (storeName) {
+                    document.getElementById("footer-store-name").textContent = storeName;
+                }
+
+                // Logo (Coluna B, índice 1)
+                const logoUrl = configRow[1]?.v;
+                if (logoUrl) {
+                    document.getElementById("logo-img").src = logoUrl;
+					document.getElementById("logo-img").alt = "Logomarca";
+					
+                }
+
+                // Social Media Links (Colunas C, D, E, índices 2, 3, 4)
+                const instagramLink = configRow[2]?.v;
+                const facebookLink = configRow[3]?.v;
+                const whatsappLink = configRow[4]?.v;
+
+                if (instagramLink) {
+                    document.getElementById("instagram-link").href = instagramLink;
+                }
+                if (facebookLink) {
+                    document.getElementById("facebook-link").href = facebookLink;
+                }
+                if (whatsappLink) {
+                    document.getElementById("whatsapp-link").href = whatsappLink;
+                }
+
+                // Address (Coluna F, índice 5)
+                const footerAddress = configRow[5]?.v;
+                if (footerAddress) {
+                    document.getElementById("footer-address").textContent = footerAddress;
+                }
+
+                // Telefones para Contato (NOVA Coluna G, índice 6)
+                const contactPhones = configRow[6]?.v;
+                if (contactPhones) {
+                    document.getElementById("footer-contact-phones").textContent = contactPhones;
+                }
+
+                // Operating Hours (Agora começando da Coluna H, índice 7)
+                horarioFuncionamento = {};
+                rows.forEach(row => {
+                    const c = row.c;
+                    if (c[7]?.v) { // Dia da Semana é c[7]
+                        horarioFuncionamento[c[7].v] = {
+                            abertura: c[8]?.f, // Abertura é c[8]
+                            almocoInicio: c[9]?.f, // Almoco Inicio é c[9]
+                            almocoFim: c[10]?.f, // Almoco Fim é c[10]
+                            fechamento: c[11]?.f // Fechamento é c[11]
+                        };
+                    }
+                });
+            }
+
+        } catch (error) {
+            horarioFuncionamento = null;
+        }
+    }
+
+    async function fetchCategoriasOrdem() {
+        try {
+            const response = await fetch(SHEET_URL_CATEGORIAS_ORDEM);
+            const text = await response.text();
+            const json = JSON.parse(text.substr(47).slice(0, -2));
+            const rows = json.table.rows;
+
+            categoriasOrdem = rows.map(row => {
+                const c = row.c;
+                return {
+                    posicao: parseInt(c[0]?.v),
+                    nome: c[1]?.v,
+                    descricao: c[2]?.v
+                };
+            }).sort((a, b) => a.posicao - b.posicao);
+            
+        } catch (error) {
+            console.error("Erro ao carregar a ordem das categorias:", error);
+            categoriasOrdem = []; // Fallback to empty array
+        }
+    }
+
+    function checkHorarioFuncionamento() {
+        if (!horarioFuncionamento) {
+            exibirPopupLojaFechada("Não foi possível carregar os horários de funcionamento.");
+            isLojaAbertaStatus = false;
+            updateFinalizarPedidoButton();
+            return;
+        }
+
+        const now = new Date();
+        const diaAtual = diasDaSemana[now.getDay()]; // 0 = Domingo, 1 = Segunda, etc.
+        const horaAtual = now.getHours() * 60 + now.getMinutes(); // Minutos desde a meia-noite
+
+        const configDia = horarioFuncionamento[diaAtual];
+
+        if (!configDia || !configDia.abertura || !configDia.fechamento) {
+            exibirPopupLojaFechada(`Não funcionamos na ${diaAtual}.`);
+            isLojaAbertaStatus = false;
+            updateFinalizarPedidoButton();
+            return;
+        }
+
+        const parseTime = (timeStr) => {
+            if (!timeStr) return -1; // -1 para indicar que não há horário definido
+            const [hours, minutes] = timeStr.split(':').map(Number);
+            return hours * 60 + minutes;
+        };
+
+        const abertura = parseTime(configDia.abertura);
+        const fechamento = parseTime(configDia.fechamento);
+        const almocoInicio = parseTime(configDia.almocoInicio);
+        const almocoFim = parseTime(configDia.almocoFim);
+
+        let isLojaAbertaLocal = false;
+        let mensagem = "";
+
+        if (abertura === -1 || fechamento === -1) {
+            isLojaAbertaLocal = false;
+            mensagem = `Os horários de abertura ou fechamento para ${diaAtual} não estão configurados corretamente.`;
+        } else if (horaAtual >= abertura && horaAtual < fechamento) {
+            // Está dentro do horário de funcionamento geral
+            if (almocoInicio !== -1 && almocoFim !== -1 && horaAtual >= almocoInicio && horaAtual < almocoFim) {
+                // Está dentro do horário de almoço
+                isLojaAbertaLocal = false;
+                mensagem = `Estamos em horário de almoço. Abriremos novamente às ${configDia.almocoFim}.`;
+            } else {
+                isLojaAbertaLocal = true;
+                mensagem = `Estamos abertos até as ${configDia.fechamento}! Faça seu pedido.`;
+            }
+        } else {
+            // Fora do horário de funcionamento geral
+            isLojaAbertaLocal = false;
+            mensagem = `No momento estamos fechados. Nosso horário de funcionamento para ${diaAtual} é das ${configDia.abertura} às ${configDia.fechamento}.`;
+            if (almocoInicio !== -1 && almocoFim !== -1) {
+                mensagem += ` Com intervalo das ${configDia.almocoInicio} às ${configDia.almocoFim}.`;
+            }
+        }
+
+        isLojaAbertaStatus = isLojaAbertaLocal; // Atualiza o status global
+
+        if (!isLojaAbertaStatus) {
+            exibirPopupLojaFechada(mensagem);
+        } else {
+           // Apenas loga se estiver aberto, não exibe popup
+        }
+        updateFinalizarPedidoButton();
+    }
+
+    function exibirPopupLojaFechada(mensagem) {
+        document.getElementById("mensagemHorario").textContent = mensagem;
+        document.getElementById("popupLojaFechada").classList.add("ativo");
+    }
+
+    function fecharPopupLojaFechada() {
+        document.getElementById("popupLojaFechada").classList.remove("ativo");
+    }
+
+    function updateFinalizarPedidoButton() {
+        const finalizarBtn = document.getElementById("btfinalizarpedido");
+        if (isLojaAbertaStatus) {
+            finalizarBtn.disabled = false;
+            finalizarBtn.style.backgroundColor = "green";
+            finalizarBtn.textContent = "Finalizar Pedido";
+        } else {
+            finalizarBtn.disabled = true;
+            finalizarBtn.style.backgroundColor = "#ccc";
+            finalizarBtn.textContent = "Loja Fechada";
+        }
+    }
+
+
     function renderCategorias() {
-        const categoriasUnicas = [...new Set(produtos.map(p => p.categoria))];
-        categoriasUnicas.sort((a, b) => a.localeCompare(b));
         const catContainer = document.getElementById("categorias");
         catContainer.innerHTML = "";
 
@@ -551,7 +829,15 @@
         btnTodas.onclick = () => renderProdutos(produtos);
         catContainer.appendChild(btnTodas);
 
-        categoriasUnicas.forEach(cat => {
+        // Use the fetched category order if available, otherwise fallback to existing logic
+        let categoriasParaRenderizar = categoriasOrdem.map(c => c.nome);
+        if (categoriasParaRenderizar.length === 0) {
+            // Fallback: get unique categories from products and sort alphabetically
+            categoriasParaRenderizar = [...new Set(produtos.map(p => p.categoria))];
+            categoriasParaRenderizar.sort((a, b) => a.localeCompare(b));
+        }
+
+        categoriasParaRenderizar.forEach(cat => {
             const btn = document.createElement("button");
             btn.textContent = cat;
             btn.onclick = () => {
@@ -574,7 +860,35 @@
             categoriasMap[p.categoria].push(p);
         });
 
-        const categoriasOrdenadas = Object.keys(categoriasMap).sort((a, b) => a.localeCompare(b));
+        // Use the fetched category order to sort the display
+        const categoriasOrdenadas = categoriasOrdem
+            .filter(cat => categoriasMap[cat.nome]) // Only include categories that have products
+            .map(cat => cat.nome);
+
+        // Add any categories from products that are not in the fetched order (fallback)
+        const existingProductCategories = [...new Set(lista.map(p => p.categoria))];
+        existingProductCategories.forEach(cat => {
+            if (!categoriasOrdenadas.includes(cat)) {
+                categoriasOrdenadas.push(cat);
+            }
+        });
+        // Sort any newly added categories alphabetically if they weren't explicitly ordered
+        categoriasOrdenadas.sort((a, b) => {
+            const indexA = categoriasOrdem.findIndex(c => c.nome === a);
+            const indexB = categoriasOrdem.findIndex(c => c.nome === b);
+
+            if (indexA === -1 && indexB === -1) {
+                return a.localeCompare(b); // Both not in custom order, sort alphabetically
+            }
+            if (indexA === -1) {
+                return 1; // A is not in custom order, B is, so B comes first
+            }
+            if (indexB === -1) {
+                return -1; // B is not in custom order, A is, so A comes first
+            }
+            return indexA - indexB; // Both in custom order, sort by custom order
+        });
+
 
         categoriasOrdenadas.forEach(categoria => {
             const tituloCat = document.createElement("h2");
@@ -583,6 +897,18 @@
             tituloCat.style.borderBottom = "2px solid #333";
             tituloCat.style.margin = "1rem 0 0.5rem 0";
             container.appendChild(tituloCat);
+
+            // Find the description for the current category
+            const categoriaInfo = categoriasOrdem.find(c => c.nome === categoria);
+            if (categoriaInfo && categoriaInfo.descricao) {
+                const descricaoP = document.createElement("p");
+                descricaoP.textContent = categoriaInfo.descricao;
+                descricaoP.style.width = "100%";
+                descricaoP.style.marginTop = "-15px";
+                descricaoP.style.fontStyle = "italic";
+                descricaoP.style.color = "#555";
+                container.appendChild(descricaoP);
+            }
 
             categoriasMap[categoria].sort((a, b) => a.nome.localeCompare(b.nome));
 
@@ -823,19 +1149,28 @@
         const botaoCarrinho = document.querySelector(".botao-carrinho");
         const popupPedido = document.getElementById("popupPedido");
         const popupAdicionais = document.getElementById("popupAdicionais");
+        const popupLojaFechada = document.getElementById("popupLojaFechada");
 
         if (
             carrinhoBox.classList.contains("ativo") &&
             !carrinhoBox.contains(event.target) &&
             !botaoCarrinho.contains(event.target) &&
             !popupPedido.contains(event.target) &&
-            !popupAdicionais.contains(event.target)
+            !popupAdicionais.contains(event.target) &&
+            !popupLojaFechada.contains(event.target)
         ) {
             carrinhoBox.classList.remove("ativo");
         }
     });
 
     function finalizarPedido() {
+        // Verificar o horário antes de abrir o popup de pedido
+        checkHorarioFuncionamento(); // Re-checa e atualiza isLojaAbertaStatus e exibe popup se necessário
+
+        if (!isLojaAbertaStatus) {
+            return; // Se a loja estiver fechada, a função checkHorarioFuncionamento já exibiu o popup
+        }
+
         if (carrinho.length === 0) {
             alert("O carrinho está vazio!");
             return;
@@ -894,6 +1229,13 @@
     }
 
     async function enviarPedido() {
+        // Verificar o horário antes de enviar o pedido
+        checkHorarioFuncionamento(); // Re-checa e atualiza isLojaAbertaStatus e exibe popup se necessário
+
+        if (!isLojaAbertaStatus) {
+            return; // Se a loja estiver fechada, a função checkHorarioFuncionamento já exibiu o popup
+        }
+
         const btnEnviarPedido = document.getElementById("btenviarpedido");
 
         // Immediately disable the button to prevent multiple clicks
@@ -986,7 +1328,6 @@
                 }),
             });
 
-            console.log("Requisição para salvar pedido enviada.");
 
             // Send to WhatsApp (existing code)
             let msg = `🛒 *Novo Pedido*\n`;
@@ -1027,7 +1368,6 @@
             fecharPopup();
 
         } catch (error) {
-            console.error("Erro ao enviar pedido:", error);
             alert("Erro ao finalizar o pedido. Por favor, tente novamente.");
         } finally {
             // Re-enable the button regardless of success or failure
