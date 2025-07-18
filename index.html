@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Catálogo de Produtos</title>
     <style>
+        /* Seu CSS existente permanece aqui */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; background: #f9f9f9; }
 
@@ -248,15 +249,15 @@
 		.footer-margem{
 		    padding: 1rem;
 		}
-		
+
 		.footer-margem p{
 		    margin-bottom: 6px;
 		}
-		
+
 		#footer-store-name{
 		font-size: 20px;
 		}
-		
+
 		.footer-desenvolvido{
 		background-color: #000;
 		padding: 0.5rem 0.5rem;
@@ -265,7 +266,7 @@
         footer {
             background: #333;
             color: white;
-            text-align: center;           
+            text-align: center;
             margin-top: 2rem;
         }
 
@@ -542,7 +543,7 @@
     const SHEET_URL_CONFIGURACOES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1791928589";
     const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyOxxBresg41yDeNplHpUNj3h2CiWBNf2HGWBvQdITjBF_HUfBCq4NwUm97dzrT6NrIOg/exec";
-	
+
     let produtos = [];
     let bairrosEntrega = {};
     let adicionais = [];
@@ -550,6 +551,7 @@
     let horarioFuncionamento = {}; // Para armazenar os horários de funcionamento
     let isLojaAbertaStatus = false; // Nova variável para rastrear o status da loja
     let categoriasOrdem = []; // Para armazenar a ordem das categorias
+    let whatsappOrderNumber = ""; // Will store the WhatsApp number for orders
 
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
@@ -557,71 +559,74 @@
     const diasDaSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Carrega as configurações (logo, redes sociais, endereço, NOME DA LOJA, TELEFONES) e horários de funcionamento
+        // Carrega as configurações (logo, redes sociais, endereço, NOME DA LOJA, TELEFONES)
         await fetchConfiguracoes();
-        await fetchCategoriasOrdem(); // Fetch the category order
-        checkHorarioFuncionamento(); // Chama para definir isLojaAbertaStatus e exibir popup inicial
 
-        fetch(SHEET_URL_PRODUTOS)
-            .then(res => res.text())
-            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-            .then(json => {
-                const rows = json.table.rows;
-                produtos = rows
-                    .filter(row => row.c[0]?.v?.toLowerCase() === "sim")
-                    .map(row => {
+        // Busca todas as outras planilhas em paralelo
+        await Promise.all([
+            fetchCategoriasOrdem(), // Retornar uma Promise diretamente
+            fetch(SHEET_URL_PRODUTOS)
+                .then(res => res.text())
+                .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+                .then(json => {
+                    const rows = json.table.rows;
+                    produtos = rows
+                        .filter(row => row.c[0]?.v?.toLowerCase() === "sim")
+                        .map(row => {
+                            const c = row.c;
+                            return {
+                                nome: c[1]?.v,
+                                categoria: c[2]?.v,
+                                descricao: c[3]?.v,
+                                preco: parseFloat(c[4]?.v),
+                                tipoAdicional: c[5]?.v,
+                                imagem: c[7]?.v,
+                                maxAdicionais: parseInt(c[6]?.v) || 999
+                            };
+                        });
+                }),
+            fetch(SHEET_URL_BAIRROS)
+                .then(res => res.text())
+                .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+                .then(json => {
+                    const rows = json.table.rows;
+                    bairrosEntrega = {};
+                    const bairroSelect = document.getElementById("bairroSelect");
+                    bairroSelect.innerHTML = '<option value="">Selecione o bairro</option>';
+
+                    rows.forEach(row => {
+                        const c = row.c;
+                        const nomeBairro = c[0]?.v;
+                        const valorEntrega = parseFloat(c[1]?.v) || 0;
+                        bairrosEntrega[nomeBairro] = valorEntrega;
+
+                        const option = document.createElement("option");
+                        option.value = nomeBairro;
+                        option.textContent = `${nomeBairro} - R$ ${valorEntrega.toFixed(2).replace('.', ',')}`;
+                        bairroSelect.appendChild(option);
+                    });
+                }),
+            fetch(SHEET_URL_ADICIONAIS)
+                .then(res => res.text())
+                .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+                .then(json => {
+                    const rows = json.table.rows;
+                    adicionais = rows.map(row => {
                         const c = row.c;
                         return {
+                            tipo: c[0]?.v,
                             nome: c[1]?.v,
-                            categoria: c[2]?.v,
-                            descricao: c[3]?.v,
-                            preco: parseFloat(c[4]?.v),
-                            tipoAdicional: c[5]?.v,
-                            imagem: c[7]?.v,
-                            maxAdicionais: parseInt(c[6]?.v) || 999
+                            preco: parseFloat(c[2]?.v) || 0
                         };
                     });
-                renderCategorias(); // Now `renderCategorias` will use the fetched order
-                renderProdutos(produtos);
-                renderCarrinho();
-            });
+                })
+        ]);
 
-        fetch(SHEET_URL_BAIRROS)
-            .then(res => res.text())
-            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-            .then(json => {
-                const rows = json.table.rows;
-                bairrosEntrega = {};
-                const bairroSelect = document.getElementById("bairroSelect");
-                bairroSelect.innerHTML = '<option value="">Selecione o bairro</option>';
-
-                rows.forEach(row => {
-                    const c = row.c;
-                    const nomeBairro = c[0]?.v;
-                    const valorEntrega = parseFloat(c[1]?.v) || 0;
-                    bairrosEntrega[nomeBairro] = valorEntrega;
-
-                    const option = document.createElement("option");
-                    option.value = nomeBairro;
-                    option.textContent = `${nomeBairro} - R$ ${valorEntrega.toFixed(2).replace('.', ',')}`;
-                    bairroSelect.appendChild(option);
-                });
-            });
-
-        fetch(SHEET_URL_ADICIONAIS)
-            .then(res => res.text())
-            .then(text => JSON.parse(text.substr(47).slice(0, -2)))
-            .then(json => {
-                const rows = json.table.rows;
-                adicionais = rows.map(row => {
-                    const c = row.c;
-                    return {
-                        tipo: c[0]?.v,
-                        nome: c[1]?.v,
-                        preco: parseFloat(c[2]?.v) || 0
-                    };
-                });
-            });
+        // Após todos os dados estarem carregados, renderize e configure o restante
+        checkHorarioFuncionamento();
+        renderCategorias();
+        renderProdutos(produtos);
+        renderCarrinho();
 
         document.getElementById("pesquisaInput").addEventListener("input", e => {
             const termo = e.target.value.toLowerCase();
@@ -658,7 +663,7 @@
                 if (logoUrl) {
                     document.getElementById("logo-img").src = logoUrl;
 					document.getElementById("logo-img").alt = "Logomarca";
-					
+
                 }
 
                 // Social Media Links (Colunas C, D, E, índices 2, 3, 4)
@@ -673,7 +678,8 @@
                     document.getElementById("facebook-link").href = facebookLink;
                 }
                 if (whatsappLink) {
-                    document.getElementById("whatsapp-link").href = whatsappLink;
+                    document.getElementById("whatsapp-link").href = 'https://wa.me/' + whatsappLink;
+                    whatsappOrderNumber = whatsappLink; // Assign to global variable for orders
                 }
 
                 // Address (Coluna F, índice 5)
@@ -723,7 +729,7 @@
                     descricao: c[2]?.v
                 };
             }).sort((a, b) => a.posicao - b.posicao);
-            
+
         } catch (error) {
             console.error("Erro ao carregar a ordem das categorias:", error);
             categoriasOrdem = []; // Fallback to empty array
@@ -829,13 +835,40 @@
         btnTodas.onclick = () => renderProdutos(produtos);
         catContainer.appendChild(btnTodas);
 
-        // Use the fetched category order if available, otherwise fallback to existing logic
-        let categoriasParaRenderizar = categoriasOrdem.map(c => c.nome);
-        if (categoriasParaRenderizar.length === 0) {
-            // Fallback: get unique categories from products and sort alphabetically
-            categoriasParaRenderizar = [...new Set(produtos.map(p => p.categoria))];
-            categoriasParaRenderizar.sort((a, b) => a.localeCompare(b));
-        }
+        // Get unique categories from the *currently available products*
+        const categoriasComProdutos = [...new Set(produtos.map(p => p.categoria))];
+
+        // Filter and sort categories based on `categoriasOrdem`
+        let categoriasParaRenderizar = categoriasOrdem
+            .filter(catOrder => categoriasComProdutos.includes(catOrder.nome))
+            .map(catOrder => catOrder.nome);
+
+        // Add any categories from products that are not in the fetched order
+        // and ensure they are sorted alphabetically
+        categoriasComProdutos.forEach(cat => {
+            if (!categoriasParaRenderizar.includes(cat)) {
+                categoriasParaRenderizar.push(cat);
+            }
+        });
+
+        // Re-sort to maintain the order from categoriasOrdem for those present,
+        // and alphabetical for others.
+        categoriasParaRenderizar.sort((a, b) => {
+            const indexA = categoriasOrdem.findIndex(c => c.nome === a);
+            const indexB = categoriasOrdem.findIndex(c => c.nome === b);
+
+            if (indexA === -1 && indexB === -1) {
+                return a.localeCompare(b); // Both not in custom order, sort alphabetically
+            }
+            if (indexA === -1) {
+                return 1; // A is not in custom order, B is, so B comes after
+            }
+            if (indexB === -1) {
+                return -1; // B is not in custom order, A is, so A comes after
+            }
+            return indexA - indexB; // Both in custom order, sort by custom order
+        });
+
 
         categoriasParaRenderizar.forEach(cat => {
             const btn = document.createElement("button");
@@ -916,7 +949,7 @@
                 const id = `${categoria}_${index}`.replace(/\s+/g, "_");
                 const card = document.createElement("div");
                 card.className = "produto";
-                card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}">
+                card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}" loading="lazy">
                     <h3>${p.nome}</h3>
                     <p>${p.descricao}</p>
                     <p><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
@@ -1358,8 +1391,7 @@
             msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
             msg += `✅ *Aguardo confirmação!*`;
 
-            const telefone = "5585986071807";
-            const url = `https://wa.me/${telefone}?text=${encodeURIComponent(msg)}`;
+            const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`; // Using whatsappOrderNumber
             window.open(url, "_blank");
 
             carrinho = [];
