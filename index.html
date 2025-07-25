@@ -407,7 +407,7 @@
         #popupLojaFechada h3 {
             color: #d9534f;
             margin-bottom: 15px;
-            font-size: 1.8rem;
+            font-size: 1.5rem;
         }
 
         #popupLojaFechada p {
@@ -429,12 +429,51 @@
         #popupLojaFechada button:hover {
             background: #e66a00;
         }
+		
+		.popup-horarios {
+          position: fixed;
+          top: 0; left: 0;
+          width: 100%; height: 100%;
+          background: rgba(0, 0, 0, 0.6);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+        .popup-horarios.ativo {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .popup-horarios .popup-conteudo {
+          background: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          max-width: 90%;
+          width: 400px;
+          text-align: center;
+        }
+        .popup-horarios h3 , .popup-conteudo h3 {
+		  font-size: 1.5rem;
+         
+        }
+        .popup-horarios ul li {
+          margin: 5px 0;
+          font-size: 1.2rem;
+        }
+        
+        		
     </style>
 </head>
 <body>
 
-<header>
-    <div id="logo"><img id="logo-img"></div>
+<header style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 5%; background: #ff7800;">
+  <div id="logo"><img id="logo-img" alt="Logomarca"></div>
+  <div id="statusLoja" onclick="mostrarPopupHorarios()" style="cursor: pointer; padding: 0.5rem 1rem; border-radius: 20px; font-weight: bold; transition: background 0.3s;">
+    Carregando...
+  </div>
 </header>
 
 <nav>
@@ -459,8 +498,11 @@
     <div class="popup-conteudo">
         <h3>Finalizar Pedido</h3>
         <label>Nome:
-            <input type="text" id="nomeCliente" />
-        </label>
+			<input type="text" id="nomeCliente" />
+		</label>
+		<label>WhatsApp:
+			<input type="text" id="whatsappCliente" placeholder="(DDD) 91234-5678" />
+		</label>
         <label>Endereço:
             <input type="text" id="endereco" />
         </label>
@@ -520,6 +562,14 @@
     </div>
 </div>
 
+<div id="popupHorarios" class="popup-horarios">
+  <div class="popup-conteudo">
+    <h3>⏰ Horários de Funcionamento</h3>
+    <ul id="listaHorariosFuncionamento" style="list-style: none; padding: 0;"></ul>
+    <button onclick="fecharPopupHorarios()">Fechar</button>
+  </div>
+</div>
+
 <footer>
   <div class="footer-margem">
     <p id="footer-store-name"></p>
@@ -542,7 +592,7 @@
     const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
     const SHEET_URL_CONFIGURACOES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1791928589";
     const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwworIpjpCkrd0tiuWscrukXjmTEI7n_gtnmy-ptvaqpCRDrbBXbFzu505f1Wb2dMZWYg/exec";
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQEg4lj4L9mxOdEk4eOJB7WnvPwI4oLkTC6R4JtY3WWu3QE17A4SRTjmFHXbmvIJCbpg/exec";
 
     let produtos = [];
     let bairrosEntrega = {};
@@ -741,6 +791,7 @@
             exibirPopupLojaFechada("Não foi possível carregar os horários de funcionamento.");
             isLojaAbertaStatus = false;
             updateFinalizarPedidoButton();
+			//atualizarStatusLojaVisual();
             return;
         }
 
@@ -801,7 +852,26 @@
            // Apenas loga se estiver aberto, não exibe popup
         }
         updateFinalizarPedidoButton();
+		atualizarStatusLojaVisual();
     }
+
+
+    function atualizarStatusLojaVisual() {
+      const statusEl = document.getElementById("statusLoja");
+      if (!statusEl) return;
+    
+      if (isLojaAbertaStatus) {
+        statusEl.textContent = "🟢 Loja Aberta";
+        statusEl.style.background = "#28a745";
+        statusEl.style.color = "#fff";
+      } else {
+        statusEl.textContent = "🔴 Loja Fechada";
+        statusEl.style.background = "#dc3545";
+        statusEl.style.color = "#fff";
+      }
+    }
+
+
 
     function exibirPopupLojaFechada(mensagem) {
         document.getElementById("mensagemHorario").textContent = mensagem;
@@ -1212,6 +1282,7 @@
         document.getElementById("carrinho").classList.remove("ativo");
 
         document.getElementById("nomeCliente").value = localStorage.getItem("nomeCliente") || "";
+		document.getElementById("whatsappCliente").value = localStorage.getItem("whatsappCliente") || "";
         document.getElementById("endereco").value = localStorage.getItem("endereco") || "";
         document.getElementById("numeroCasa").value = localStorage.getItem("numeroCasa") || "";
         document.getElementById("bairroSelect").value = localStorage.getItem("bairro") || "";
@@ -1275,6 +1346,7 @@
         btnEnviarPedido.disabled = true;
 
         const nome = document.getElementById("nomeCliente").value.trim();
+		const whatsapp = document.getElementById("whatsappCliente").value.trim();
         const endereco = document.getElementById("endereco").value.trim();
         const numeroCasa = document.getElementById("numeroCasa").value.trim();
         const bairro = document.getElementById("bairroSelect").value;
@@ -1282,7 +1354,7 @@
         const troco = document.getElementById("troco").value.trim();
 
         // Basic client-side validation
-        if (!nome || !endereco || !numeroCasa || !bairro || !formaPagamento) {
+        if (!nome || !whatsapp || !endereco || !numeroCasa || !bairro || !formaPagamento) {
             alert("Por favor, preencha todos os campos.");
             btnEnviarPedido.disabled = false; // Re-enable if validation fails
             return;
@@ -1317,6 +1389,7 @@
         }
 
         localStorage.setItem("nomeCliente", nome);
+		localStorage.setItem("whatsappCliente", whatsapp);
         localStorage.setItem("endereco", endereco);
         localStorage.setItem("numeroCasa", numeroCasa);
         localStorage.setItem("bairro", bairro);
@@ -1351,6 +1424,7 @@
                 },
                 body: JSON.stringify({
                     nomeCliente: nome,
+					whatsapp: whatsapp,
                     endereco: endereco,
                     numeroCasa: numeroCasa,
                     bairro: bairro,
@@ -1406,6 +1480,47 @@
             btnEnviarPedido.disabled = false;
         }
     }
+	
+    function mostrarPopupHorarios() {
+      const lista = document.getElementById("listaHorariosFuncionamento");
+      lista.innerHTML = "";
+    
+      if (!horarioFuncionamento) {
+        lista.innerHTML = "<li>Horários não disponíveis.</li>";
+      } else {
+        for (const dia in horarioFuncionamento) {
+          const h = horarioFuncionamento[dia];
+          const li = document.createElement("li");
+      
+          if (!h.abertura || !h.fechamento) {
+            li.innerHTML = `<strong>${dia}</strong><br>Fechado`;
+          } else {
+            let linhaHorario = `${h.abertura} às ${h.almocoInicio || h.fechamento}`;
+            if (h.almocoInicio && h.almocoFim) {
+              linhaHorario += ` e ${h.almocoFim} às ${h.fechamento}`;
+            } else {
+              linhaHorario = `${h.abertura} às ${h.fechamento}`;
+            }
+      
+            li.innerHTML = `<strong>${dia}</strong><br>${linhaHorario}`;
+          }
+      
+          li.style.marginBottom = "10px";
+          lista.appendChild(li);
+        }
+      }
+
+
+
+    
+      document.getElementById("popupHorarios").classList.add("ativo");
+    }
+    
+    function fecharPopupHorarios() {
+      document.getElementById("popupHorarios").classList.remove("ativo");
+    }
+    
+	
 </script>
 
 </body>
