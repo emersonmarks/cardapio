@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -151,6 +152,7 @@
         .produto h3 { margin: 0.5rem 0; }
 
         .quantidade-container {
+			float: left;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -169,6 +171,10 @@
             text-align: center;
             font-weight: bold;
         }
+		
+		.valor{
+			margin-top: 0.5rem;
+		}
 
         #carrinho {
             position: fixed;
@@ -204,7 +210,7 @@
         }
 
 
-        .produto button, #carrinho button, #btenviarpedido, #btcancelar, #btAdicionarAoCarrinhoComAdicionais, #btCancelarAdicionais, #btfinalizarpedido{
+        .produto button, #carrinho button, #btenviarpedido, #btcancelar, #btAdicionarAoCarrinhoComAdicionais, #btCancelarAdicionais, #btfinalizarpedido, #btVoltar{
             font-size:16px;
             margin-top: 0.5rem;
             padding: 0.5rem;
@@ -214,6 +220,11 @@
             border-radius: 5px;
             cursor: pointer;
         }
+		
+		.produto button{
+			float:right;
+		
+		}
 
         #btcancelar, #btCancelarAdicionais{
             background: red;
@@ -501,13 +512,13 @@
 			<input type="text" id="nomeCliente" />
 		</label>
 		<label>WhatsApp:
-			<input type="text" id="whatsappCliente" placeholder="(DDD) 91234-5678" />
+			<input type="text" id="whatsappCliente" pattern="\d{2} \d{5}-\d{4}" placeholder="Ex.: 99 99999-9999" />
 		</label>
         <label>Endereço:
             <input type="text" id="endereco" />
         </label>
         <label>Número da Casa:
-            <input type="text" id="numeroCasa" />
+            <input type="number" id="numeroCasa" />
         </label>
         <label>Bairro:
             <select id="bairroSelect">
@@ -566,7 +577,7 @@
   <div class="popup-conteudo">
     <h3>⏰ Horários de Funcionamento</h3>
     <ul id="listaHorariosFuncionamento" style="list-style: none; padding: 0;"></ul>
-    <button onclick="fecharPopupHorarios()">Fechar</button>
+    <button id="btVoltar" onclick="fecharPopupHorarios()">Fechar</button>
   </div>
 </div>
 
@@ -861,11 +872,11 @@
       if (!statusEl) return;
     
       if (isLojaAbertaStatus) {
-        statusEl.textContent = "🟢 Loja Aberta";
+        statusEl.textContent = "✔️ Loja Aberta";
         statusEl.style.background = "#28a745";
         statusEl.style.color = "#fff";
       } else {
-        statusEl.textContent = "🔴 Loja Fechada";
+        statusEl.textContent = "❌ Loja Fechada";
         statusEl.style.background = "#dc3545";
         statusEl.style.color = "#fff";
       }
@@ -1022,7 +1033,7 @@
                 card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}" loading="lazy">
                     <h3>${p.nome}</h3>
                     <p>${p.descricao}</p>
-                    <p><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
+                    <p class="valor" ><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
                     <div class="quantidade-container">
                         <button onclick="alterarQuantidade('subtrair', '${id}')">-</button>
                         <span id="qtd_${id}">1</span>
@@ -1353,12 +1364,52 @@
         const formaPagamento = document.getElementById("formaPagamento").value;
         const troco = document.getElementById("troco").value.trim();
 
-        // Basic client-side validation
-        if (!nome || !whatsapp || !endereco || !numeroCasa || !bairro || !formaPagamento) {
-            alert("Por favor, preencha todos os campos.");
-            btnEnviarPedido.disabled = false; // Re-enable if validation fails
+        // Expressão regular para validar WhatsApp no formato xx xxxxx-xxxx
+        const whatsappRegex = /^\d{2} \d{5}-\d{4}$/;
+        
+        if (!nome) {
+            alert("Por favor, preencha o Nome.");
+            btnEnviarPedido.disabled = false;
             return;
         }
+        
+        if (!whatsapp) {
+            alert("Por favor, preencha o Número do WhatsApp.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+        
+        if (!whatsappRegex.test(whatsapp)) {
+            alert("Formato de WhatsApp inválido. Use o formato: xx xxxxx-xxxx");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+        
+        if (!endereco) {
+            alert("Por favor, preencha o Endereço.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+        
+        if (!numeroCasa) {
+            alert("Por favor, preencha o Número da Casa.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+        
+        if (!bairro) {
+            alert("Por favor, selecione o Bairro.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+        
+        if (!formaPagamento) {
+            alert("Por favor, selecione a Forma de Pagamento.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+
+
 
         let totalPedidoFinal = 0;
         const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
@@ -1520,6 +1571,21 @@
       document.getElementById("popupHorarios").classList.remove("ativo");
     }
     
+	
+	document.getElementById("whatsappCliente").addEventListener("input", function (e) {
+    let value = e.target.value.replace(/\D/g, ""); // Remove tudo que não for dígito
+
+    if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
+
+    if (value.length >= 7) {
+        e.target.value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, "$1 $2-$3");
+    } else if (value.length >= 3) {
+        e.target.value = value.replace(/^(\d{2})(\d{0,5})/, "$1 $2");
+    } else {
+        e.target.value = value;
+    }
+});
+
 	
 </script>
 
