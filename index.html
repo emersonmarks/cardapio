@@ -58,6 +58,7 @@
         }
 
         nav button {
+			font-size: 16px;
             white-space: nowrap;
             background: #666;
             color: white;
@@ -392,6 +393,25 @@
             font-weight: bold;
         }
 
+        
+.card-tipo {
+  flex: 1;
+  min-width: 100px;
+  padding: 10px;
+  background-color: #eee;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.3s;
+}
+.card-tipo.selecionado {
+  border-color: #ff7800;
+  background-color: #fff3e6;
+  font-weight: bold;
+}
+
+
         /* Novo estilo para o popup de loja fechada */
         #popupLojaFechada {
             position: fixed;
@@ -515,6 +535,13 @@
 <div id="popupPedido">
     <div class="popup-conteudo">
         <h3>Finalizar Pedido</h3>
+		<div id="tipoContainer">
+  <h4 style="margin-bottom: 5px;">Escolha o tipo do pedido:</h4>
+  <div id="tipoOptions" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
+</div>		
+		<label>Número da Mesa:
+            <input type="number" id="mesa" />
+        </label>
         <label>Nome:
 			<input type="text" id="nomeCliente" />
 		</label>
@@ -542,6 +569,9 @@
         </label>
         <label id="labelTroco" style="display:none;">Troco para quanto?
             <input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
+        </label>
+        <label>Observação:
+            <input type="text" id="observacao" />
         </label>
 
         <p id="totalPedido" style="font-weight:bold; font-size:1.2rem; margin-top:5px;">
@@ -610,7 +640,7 @@
     const SHEET_URL_ADICIONAIS = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=290055706";
     const SHEET_URL_CONFIGURACOES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1791928589";
     const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
-    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwQEg4lj4L9mxOdEk4eOJB7WnvPwI4oLkTC6R4JtY3WWu3QE17A4SRTjmFHXbmvIJCbpg/exec";
+    const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK1VBRTssi2-bl_DR_3pG-1zf7tePbdmgZ0k2b6hQT3ajda4VVPzyNJUjkFdkrhdO/exec";
 
     let produtos = [];
     let bairrosEntrega = {};
@@ -623,6 +653,8 @@
 
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
+
+    let tipoSelecionado = ""; // Global variable to store the selected order type
 
     const diasDaSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
@@ -708,6 +740,19 @@
         });
 
         document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
+
+        // Inicialmente, oculte todos os campos
+        // Isso garante um estado limpo antes que um "tipo" seja selecionado
+		document.getElementById("nomeCliente").closest("label").style.display = "none";
+        document.getElementById("whatsappCliente").closest("label").style.display = "none";
+        document.getElementById("mesa").closest("label").style.display = "none";
+        document.getElementById("endereco").closest("label").style.display = "none";
+        document.getElementById("numeroCasa").closest("label").style.display = "none";
+        document.getElementById("bairroSelect").closest("label").style.display = "none";
+        document.getElementById("formaPagamento").closest("label").style.display = "none";
+		document.getElementById("observacao").closest("label").style.display = "none";
+        document.getElementById("labelTroco").style.display = "none";
+
     });
 
     async function fetchConfiguracoes() {
@@ -756,8 +801,11 @@
                     document.getElementById("footer-address").textContent = footerAddress;
                 }
 
-                // Telefones para Contato (NOVA Coluna G, índice 6)
                 const contactPhones = configRow[6]?.v;
+                const deliveryAtivo = configRow[12]?.v?.toLowerCase() === "sim";
+                const retiradaAtivo = configRow[13]?.v?.toLowerCase() === "sim";
+                const mesaAtivo = configRow[14]?.v?.toLowerCase() === "sim";
+                renderOpcoesTipoPedido({ delivery: deliveryAtivo, retirada: retiradaAtivo, mesa: mesaAtivo });
                 if (contactPhones) {
                     document.getElementById("footer-contact-phones").textContent = contactPhones;
                 }
@@ -1299,16 +1347,34 @@
 
         document.getElementById("carrinho").classList.remove("ativo");
 
+        // --- CARREGAR DADOS DO LOCALSTORAGE PARA OS CAMPOS ---
         document.getElementById("nomeCliente").value = localStorage.getItem("nomeCliente") || "";
 		document.getElementById("whatsappCliente").value = localStorage.getItem("whatsappCliente") || "";
+
+        // Carrega todos os campos de endereço e mesa, mesmo que não sejam do tipo atual.
+        // Se não houver valor salvo, o campo ficará vazio.
         document.getElementById("endereco").value = localStorage.getItem("endereco") || "";
         document.getElementById("numeroCasa").value = localStorage.getItem("numeroCasa") || "";
         document.getElementById("bairroSelect").value = localStorage.getItem("bairro") || "";
+
         document.getElementById("formaPagamento").value = localStorage.getItem("formaPagamento") || "Dinheiro";
 
         toggleTrocoField();
 
         atualizarTotalPedido();
+
+        // Restaurar o último tipo de pedido selecionado
+        const lastTipo = localStorage.getItem("tipoPedido");
+        if (lastTipo) {
+            const typeButtons = document.querySelectorAll(".card-tipo");
+            typeButtons.forEach(button => {
+                // Verifica se o texto do botão contém o nome do tipo (e.g., "Delivery", "Retirar no Local", "Comer na Mesa")
+                if (button.textContent.includes(lastTipo.replace("Retirada", "Retirar no Local").replace("Mesa", "Comer na Mesa"))) {
+                    selecionarTipo(lastTipo, button);
+                }
+            });
+        }
+
 
         document.getElementById("popupPedido").classList.add("ativo");
     }
@@ -1332,7 +1398,12 @@
 
         const bairro = document.getElementById("bairroSelect").value;
         const taxaEntrega = bairrosEntrega[bairro] || 0;
-        const total = totalProdutosCalculado + taxaEntrega;
+        let total = totalProdutosCalculado;
+
+        // Only add delivery fee if delivery is selected
+        if (tipoSelecionado === "Delivery") {
+            total += taxaEntrega;
+        }
 
         const totalPedidoSpan = document.getElementById("totalPedido");
         totalPedidoSpan.textContent = `Total do Pedido: R$ ${total.toFixed(2).replace('.', ',')}`;
@@ -1363,13 +1434,16 @@
         // Immediately disable the button to prevent multiple clicks
         btnEnviarPedido.disabled = true;
 
+		const tipo = tipoSelecionado;
+        if (!tipo) {
+            alert("Por favor, selecione o tipo do pedido.");
+            btnEnviarPedido.disabled = false;
+            return;
+        }
+		
         const nome = document.getElementById("nomeCliente").value.trim();
 		const whatsapp = document.getElementById("whatsappCliente").value.trim();
-        const endereco = document.getElementById("endereco").value.trim();
-        const numeroCasa = document.getElementById("numeroCasa").value.trim();
-        const bairro = document.getElementById("bairroSelect").value;
-        const formaPagamento = document.getElementById("formaPagamento").value;
-        const troco = document.getElementById("troco").value.trim();
+        const observacao = document.getElementById("observacao").value.trim();
 
         // Expressão regular para validar WhatsApp no formato xx xxxxx-xxxx
         const whatsappRegex = /^\d{2} \d{5}-\d{4}$/;
@@ -1391,32 +1465,77 @@
             btnEnviarPedido.disabled = false;
             return;
         }
-        
-        if (!endereco) {
-            alert("Por favor, preencha o Endereço.");
-            btnEnviarPedido.disabled = false;
-            return;
-        }
-        
-        if (!numeroCasa) {
-            alert("Por favor, preencha o Número da Casa.");
-            btnEnviarPedido.disabled = false;
-            return;
-        }
-        
-        if (!bairro) {
-            alert("Por favor, selecione o Bairro.");
-            btnEnviarPedido.disabled = false;
-            return;
-        }
-        
-        if (!formaPagamento) {
-            alert("Por favor, selecione a Forma de Pagamento.");
-            btnEnviarPedido.disabled = false;
-            return;
-        }
 
+        let mesa = "";
+        let endereco = "";
+        let numeroCasa = "";
+        let bairro = "";
+        let formaPagamento = "";
+        let troco = 0;
+        let taxaEntrega = 0;
 
+        // --- VALIDATION AND VALUE ASSIGNMENT FOR CURRENT ORDER TYPE ---
+        if (tipo === "Delivery") {
+            endereco = document.getElementById("endereco").value.trim();
+            numeroCasa = document.getElementById("numeroCasa").value.trim();
+            bairro = document.getElementById("bairroSelect").value;
+            formaPagamento = document.getElementById("formaPagamento").value;
+            troco = document.getElementById("troco").value.trim();
+            taxaEntrega = bairrosEntrega[bairro] || 0;
+
+            if (!endereco) {
+                alert("Por favor, preencha o Endereço.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+            if (!numeroCasa) {
+                alert("Por favor, preencha o Número da Casa.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+            if (!bairro) {
+                alert("Por favor, selecione o Bairro.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+            if (!formaPagamento) {
+                alert("Por favor, selecione a Forma de Pagamento.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+            if (formaPagamento === "Dinheiro") {
+                const trocoValor = parseFloat(troco.replace(',', '.'));
+                if (!troco || isNaN(trocoValor)) {
+                    alert("Por favor, informe um valor válido para o troco.");
+                    btnEnviarPedido.disabled = false;
+                    return;
+                }
+            }
+        } else if (tipo === "Retirada") {
+            formaPagamento = document.getElementById("formaPagamento").value;
+            troco = document.getElementById("troco").value.trim();
+
+            if (!formaPagamento) {
+                alert("Por favor, selecione a Forma de Pagamento.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+            if (formaPagamento === "Dinheiro") {
+                const trocoValor = parseFloat(troco.replace(',', '.'));
+                if (!troco || isNaN(trocoValor)) {
+                    alert("Por favor, informe um valor válido para o troco.");
+                    btnEnviarPedido.disabled = false;
+                    return;
+                }
+            }
+        } else if (tipo === "Mesa") {
+            mesa = document.getElementById("mesa").value.trim();
+            if (!mesa) {
+                alert("Por favor, preencha o Número da Mesa.");
+                btnEnviarPedido.disabled = false;
+                return;
+            }
+        }
 
         let totalPedidoFinal = 0;
         const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
@@ -1427,36 +1546,28 @@
             return acc + precoComAdicionais * p.quantidade;
         }, 0);
 
-        const taxaEntrega = bairrosEntrega[bairro] || 0;
         totalPedidoFinal = totalProdutosComAdicionais + taxaEntrega;
 
-        if (formaPagamento === "Dinheiro") {
-            const trocoValor = parseFloat(troco.replace(',', '.'));
 
-            if (!troco || isNaN(trocoValor)) {
-                alert("Por favor, informe um valor válido para o troco.");
-                btnEnviarPedido.disabled = false; // Re-enable if validation fails
-                return;
-            }
-
-            if (trocoValor < totalPedidoFinal) {
-                alert(`O valor para troco deve ser maior ou igual ao total da compra (${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}).`);
-                btnEnviarPedido.disabled = false; // Re-enable if validation fails
-                return;
-            }
-        }
-
+        // --- SALVAR DADOS NO LOCALSTORAGE DE FORMA INTELIGENTE ---
         localStorage.setItem("nomeCliente", nome);
-		localStorage.setItem("whatsappCliente", whatsapp);
-        localStorage.setItem("endereco", endereco);
-        localStorage.setItem("numeroCasa", numeroCasa);
-        localStorage.setItem("bairro", bairro);
+        localStorage.setItem("whatsappCliente", whatsapp);
+        localStorage.setItem("tipoPedido", tipo); // Sempre salva o último tipo selecionado
+
+
+		if (tipo === "Retirada") {
+        // Salva forma de pagamento
         localStorage.setItem("formaPagamento", formaPagamento);
-        if (formaPagamento === "Dinheiro") {
-            localStorage.setItem("troco", troco);
-        } else {
-            localStorage.removeItem("troco");
+		}
+
+        // Salva campos específicos do tipo SOMENTE se eles foram relevantes para este pedido
+        if (tipo === "Delivery") {
+			localStorage.setItem("formaPagamento", formaPagamento);
+            localStorage.setItem("endereco", endereco);
+            localStorage.setItem("numeroCasa", numeroCasa);
+            localStorage.setItem("bairro", bairro);
         }
+
 
         let detalhesPedidoString = "";
         carrinho.forEach(p => {
@@ -1469,33 +1580,43 @@
                 });
             }
             detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe}\n`;
-			});
+        });
         detalhesPedidoString = detalhesPedidoString.trim();
 
         try {
-            // Send to Google Apps Script (to save to the spreadsheet)
-            await fetch(APPS_SCRIPT_WEB_APP_URL, {
+            console.log("Attempting to send data to Google Apps Script...");
+            const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+					tipo: tipo,
+					mesa: mesa,
                     nomeCliente: nome,
 					whatsapp: whatsapp,
                     endereco: endereco,
                     numeroCasa: numeroCasa,
                     bairro: bairro,
                     formaPagamento: formaPagamento,
-                    troco: formaPagamento === "Dinheiro" ? parseFloat(troco) : 0,
+                    troco: formaPagamento === "Dinheiro" ? parseFloat(troco.replace(',', '.')) : 0,
                     totalPedido: totalPedidoFinal,
-                    detalhesPedido: detalhesPedidoString
+                    detalhesPedido: detalhesPedidoString,
+					observacao: observacao
                 }),
             });
+            console.log("Fetch request sent. Response object (if mode is not 'no-cors'):", response);
 
+            console.log("Data send attempt finished. Check Google Apps Script logs for successful processing.");
 
             // Send to WhatsApp (existing code)
-            let msg = `🛒 *Novo Pedido*\n`;
+            let msg = `🛒 *Novo Pedido - ${tipo}*\n`;
+			
+            if (tipo === "Mesa") {
+                msg += `*Mesa N°:* ${mesa}\n`;
+            }
+			
             msg += `👤 *Nome:* ${nome}\n`;
             msg += `📦 *Itens:*\n`;
 
@@ -1512,15 +1633,32 @@
             });
 
             msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-            msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            
+            if (tipo === "Delivery") {
+                msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            }
+            
             msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-            if (formaPagamento === "Dinheiro") {
-                msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+            
+            if (tipo !== "Mesa") { // Payment info for Delivery and Retirada
+                if (formaPagamento === "Dinheiro") {
+                    msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+                } else {
+                    msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+                }
             } else {
-                msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+                msg += `\n`; // Add a line break for consistency
             }
 
-            msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
+            if (tipo === "Delivery") {
+                msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
+            }
+			
+            if (observacao === "") {
+            } else {
+                msg += `*📋 Obs.:* ${observacao}\n`;
+            }
+			
             msg += `✅ *Aguardo confirmação!*`;
 
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`; // Using whatsappOrderNumber
@@ -1532,13 +1670,85 @@
             fecharPopup();
 
         } catch (error) {
-            alert("Erro ao finalizar o pedido. Por favor, tente novamente.");
+            console.error("Erro ao enviar pedido para o Apps Script:", error);
+            alert("Erro ao finalizar o pedido. Por favor, tente novamente. Verifique o console do navegador para mais detalhes.");
         } finally {
             // Re-enable the button regardless of success or failure
             btnEnviarPedido.disabled = false;
         }
     }
 	
+    
+function renderOpcoesTipoPedido({ delivery, retirada, mesa }) {
+  const container = document.getElementById("tipoOptions");
+  container.innerHTML = "";
+
+  const opcoes = [
+    { id: "Delivery", nome: "Delivery", ativo: delivery },
+    { id: "Retirada", nome: "Retirar no Local", ativo: retirada },
+    { id: "Mesa", nome: "Comer na Mesa", ativo: mesa },
+  ];
+
+  opcoes.forEach(opcao => {
+    if (opcao.ativo) {
+      const div = document.createElement("div");
+      div.className = "card-tipo";
+      div.textContent = opcao.nome;
+      div.onclick = () => selecionarTipo(opcao.id, div);
+      container.appendChild(div);
+    }
+  });
+}
+
+
+function selecionarTipo(tipo, elemento) {
+    tipoSelecionado = tipo;
+    document.querySelectorAll(".card-tipo").forEach(card => card.classList.remove("selecionado"));
+    elemento.classList.add("selecionado");
+
+
+	const nomeField = document.getElementById("nomeCliente").closest("label");
+    const whatsappField = document.getElementById("whatsappCliente").closest("label");
+    const mesaField = document.getElementById("mesa").closest("label");
+    const enderecoField = document.getElementById("endereco").closest("label");
+    const numeroCasaField = document.getElementById("numeroCasa").closest("label");
+    const bairroField = document.getElementById("bairroSelect").closest("label");
+    const formaPagamentoField = document.getElementById("formaPagamento").closest("label");
+	const observacaoField = document.getElementById("observacao").closest("label");
+    const trocoField = document.getElementById("labelTroco");
+
+    // Reset all fields to hidden first
+	nomeField.style.display = "block";
+    whatsappField.style.display = "block";
+    observacaoField.style.display = "block";
+    mesaField.style.display = "none";
+    enderecoField.style.display = "none";
+    numeroCasaField.style.display = "none";
+    bairroField.style.display = "none";
+    formaPagamentoField.style.display = "none";
+    trocoField.style.display = "none";
+
+
+
+    if (tipo === "Delivery") {
+        enderecoField.style.display = "block";
+        numeroCasaField.style.display = "block";
+        bairroField.style.display = "block";
+        formaPagamentoField.style.display = "block";
+        toggleTrocoField(); // Show troco if Dinheiro is selected
+    } else if (tipo === "Retirada") {
+        formaPagamentoField.style.display = "block";
+        toggleTrocoField(); // Show troco if Dinheiro is selected
+    } else if (tipo === "Mesa") {
+        mesaField.style.display = "block";
+        // No address or payment fields for "Mesa"
+    }
+
+    // Update total to reflect delivery fee change
+    atualizarTotalPedido();
+}
+
+
     function mostrarPopupHorarios() {
       const lista = document.getElementById("listaHorariosFuncionamento");
       lista.innerHTML = "";
