@@ -642,6 +642,8 @@
     const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK1VBRTssi2-bl_DR_3pG-1zf7tePbdmgZ0k2b6hQT3ajda4VVPzyNJUjkFdkrhdO/exec";
 
+	let nome = localStorage.getItem("nomeCliente") || "";
+
     let produtos = [];
     let bairrosEntrega = {};
     let adicionais = [];
@@ -904,10 +906,10 @@
         } else {
             // Fora do horário de funcionamento geral
             isLojaAbertaLocal = false;
-            mensagem = `No momento estamos fechados. Nosso horário de funcionamento para ${diaAtual} é das ${configDia.abertura} às ${configDia.fechamento}.`;
-            if (almocoInicio !== -1 && almocoFim !== -1) {
-                mensagem += ` Com intervalo das ${configDia.almocoInicio} às ${configDia.almocoFim}.`;
-            }
+            mensagem = `Olá ${nome}. No momento estamos fechados. Nosso horário de funcionamento na ${diaAtual} é de ${configDia.abertura} às ${configDia.fechamento}.`;
+            //***if (almocoInicio !== -1 && almocoFim !== -1) {
+            //    mensagem += ` Com intervalo das ${configDia.almocoInicio} às ${configDia.almocoFim}.`;
+            //}
         }
 
         isLojaAbertaStatus = isLojaAbertaLocal; // Atualiza o status global
@@ -1441,7 +1443,7 @@
             return;
         }
 		
-        const nome = document.getElementById("nomeCliente").value.trim();
+        //const nome = document.getElementById("nomeCliente").value.trim();  <-- ´ja está sendo atribuida no começo do script por conta das mensagens de fechado.
 		const whatsapp = document.getElementById("whatsappCliente").value.trim();
         const observacao = document.getElementById("observacao").value.trim();
 
