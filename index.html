@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Catálogo de Produtos</title>
     <style>
-        /* Seu CSS existente permanece aqui */
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: Arial, sans-serif; background: #f9f9f9; }
 
@@ -394,23 +394,23 @@
         }
 
         
-.card-tipo {
-  flex: 1;
-  min-width: 100px;
-  padding: 10px;
-  background-color: #eee;
-  border-radius: 8px;
-  border: 2px solid transparent;
-  text-align: center;
-  cursor: pointer;
-  transition: 0.3s;
-}
-.card-tipo.selecionado {
-  border-color: #ff7800;
-  background-color: #fff3e6;
-  font-weight: bold;
-}
-
+		.card-tipo {
+		flex: 1;
+		min-width: 100px;
+		padding: 10px;
+		background-color: #eee;
+		border-radius: 8px;
+		border: 2px solid transparent;
+		text-align: center;
+		cursor: pointer;
+		transition: 0.3s;
+		}
+		.card-tipo.selecionado {
+		border-color: #ff7800;
+		background-color: #fff3e6;
+		font-weight: bold;
+		}
+		
 
         /* Novo estilo para o popup de loja fechada */
         #popupLojaFechada {
@@ -501,6 +501,24 @@
           margin: 5px 0;
           font-size: 1.2rem;
         }
+		
+		/* 🔹 Spinner */
+		.loading-spinner {
+		border: 3px solid #f3f3f3;
+		border-top: 3px solid #007BFF;
+		border-radius: 50%;
+		width: 18px;
+		height: 18px;
+		animation: spin 1s linear infinite;
+		display: inline-block;
+		vertical-align: middle;
+		margin-right: 8px; /* Espaço entre o spinner e o texto */
+		}
+		
+		@keyframes spin {
+		0% { transform: rotate(0deg); }
+		100% { transform: rotate(360deg); }
+		}
         
         		
     </style>
@@ -576,12 +594,16 @@
 
         <p id="totalPedido" style="font-weight:bold; font-size:1.2rem; margin-top:5px;">
             Total do Pedido: R$ 0,00
-        </p>
-
-        <div>
-            <button id="btenviarpedido" onclick="enviarPedido()">Enviar Pedido</button>
-            <button id="btcancelar" onclick="fecharPopup()">Cancelar</button>
-        </div>
+        </p>		
+		
+		<div>
+			<button id="btenviarpedido" onclick="enviarPedido()">
+				<span class="loading-spinner" style="display: none;"></span>
+				<span id="text-enviar-pedido">Enviar pedido</span>
+			</button>
+			<button id="btcancelar" onclick="fecharPopup()">Cancelar</button>
+		</div>
+		
     </div>
 </div>
 
@@ -898,15 +920,15 @@
             if (almocoInicio !== -1 && almocoFim !== -1 && horaAtual >= almocoInicio && horaAtual < almocoFim) {
                 // Está dentro do horário de almoço
                 isLojaAbertaLocal = false;
-                mensagem = `Estamos em horário de almoço. Abriremos novamente às ${configDia.almocoFim}.`;
+                mensagem = `Olá, ${nome}! Fizemos uma pausa e retornaremos às ${configDia.almocoFim}.`;
             } else {
                 isLojaAbertaLocal = true;
-                mensagem = `Estamos abertos até as ${configDia.fechamento}! Faça seu pedido.`;
+                mensagem = `Olá, ${nome}! Estamos abertos até as ${configDia.fechamento}! Faça seu pedido.`;
             }
         } else {
             // Fora do horário de funcionamento geral
             isLojaAbertaLocal = false;
-            mensagem = `Olá ${nome}. No momento estamos fechados. Nosso horário de funcionamento na ${diaAtual} é de ${configDia.abertura} às ${configDia.fechamento}.`;
+            mensagem = `Olá, ${nome}! No momento estamos fechados. Nosso horário de funcionamento na ${diaAtual} é de ${configDia.abertura} às ${configDia.fechamento}.`;
             //***if (almocoInicio !== -1 && almocoFim !== -1) {
             //    mensagem += ` Com intervalo das ${configDia.almocoInicio} às ${configDia.almocoFim}.`;
             //}
@@ -1432,6 +1454,7 @@
         }
 
         const btnEnviarPedido = document.getElementById("btenviarpedido");
+		const spinner = btnEnviarPedido.querySelector('.loading-spinner');
 
         // Immediately disable the button to prevent multiple clicks
         btnEnviarPedido.disabled = true;
@@ -1584,6 +1607,10 @@
             detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe}\n`;
         });
         detalhesPedidoString = detalhesPedidoString.trim();
+		
+		// Desabilita o botão e exibe o spinner
+		btnEnviarPedido.disabled = true;
+		spinner.style.display = 'inline-block';
 
         try {
             console.log("Attempting to send data to Google Apps Script...");
@@ -1662,9 +1689,17 @@
             }
 			
             msg += `✅ *Aguardo confirmação!*`;
+			
+			
+			// Oculta o spinner e reativa o botão ANTES do alerta
+			spinner.style.display = 'none';
+			btnEnviarPedido.disabled = false;
+		
+			alert('✅ Pedido enviado com sucesso!');			
 
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`; // Using whatsappOrderNumber
             window.open(url, "_blank");
+
 
             carrinho = [];
             localStorage.removeItem("carrinho");
