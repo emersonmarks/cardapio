@@ -1722,7 +1722,7 @@
             }
             if (p.adicionais && p.adicionais.length > 0) {
                 p.adicionais.forEach(ad => {
-                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `+${ad.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `${ad.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
                     detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText})\n`;
                 });
             }
@@ -1967,6 +1967,7 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
+
 
 
 
