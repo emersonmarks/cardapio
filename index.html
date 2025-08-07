@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -323,7 +322,7 @@
             border-radius: 4px;
         }
 
-        /* Estilos para o Pop-up de Adicionais */
+        /* Estilos para o Pop-up de Adicionais e Sabores */
         #popupAdicionais {
             position: fixed;
             top: 0;
@@ -349,9 +348,9 @@
             background: white;
             padding: 20px;
             border-radius: 8px;
-            width: 80%;
+            width: 94%;
             max-width: 500px;
-            max-height: 90vh; /* Limita a altura para rolagem */
+            max-height: 94%; /* Limita a altura para rolagem */
             overflow-y: auto; /* Adiciona barra de rolagem se necessário */
             display: flex;
             flex-direction: column;
@@ -359,6 +358,24 @@
             transform: scale(0.9);
             transition: transform 0.3s ease;
         }
+        
+        .adicionais-group {
+            margin-bottom: 15px;
+            padding: 10px; /* Adicionado padding para a borda */
+            border: 1px solid #ccc; /* Adicionada borda */
+            border-radius: 8px; /* Opcional: arredondar a borda */
+        }
+		
+		.adicionais-group .info-limit {
+			margin-bottom: 5px;
+			font-size: 1rem;
+		}
+		
+		.adicionais-group h4 {
+			color: #ff7800; /* Cor do título alterada */
+			font-size: 1.2rem;
+		}
+
 
         #popupAdicionais.ativo .popup-conteudo {
             transform: scale(1);
@@ -392,7 +409,6 @@
         .adicional-item span {
             font-weight: bold;
         }
-
         
 		.card-tipo {
 		flex: 1;
@@ -579,10 +595,10 @@
         </label>
         <label>Forma de Pagamento:
             <select id="formaPagamento" onchange="toggleTrocoField()">
-                <option value="Dinheiro">Dinheiro</option>
                 <option value="Cartão de Crédito">Cartão de Crédito</option>
                 <option value="Cartão de Débito">Cartão de Débito</option>
-                <option value="Pix">Pix</option>
+				<option value="Dinheiro">Dinheiro</option>
+                <option value="Pix">Pix</option>				
             </select>
         </label>
         <label id="labelTroco" style="display:none;">Troco para quanto?
@@ -610,9 +626,10 @@
 <div id="popupAdicionais">
     <div class="popup-conteudo">
         <h3 id="adicionalProdutoNome">Adicionais para [Nome do Produto]</h3>
-        <p id="adicionalLimitText" style="font-size: 0.9em; color: #666; margin-top: -5px; margin-bottom: 10px;"></p>
-        <div id="listaAdicionais">
-        </div>
+        
+        <div id="listaSabores" class="adicionais-group"></div>
+        <div id="listaAdicionais" class="adicionais-group"></div>
+        
         <p>
             Total do Produto com Adicionais:
             <strong id="totalProdutoComAdicionais">R$ 0,00</strong>
@@ -663,32 +680,33 @@
     const SHEET_URL_CONFIGURACOES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1791928589";
     const SHEET_URL_CATEGORIAS_ORDEM = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=1852665090";
     const APPS_SCRIPT_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwiK1VBRTssi2-bl_DR_3pG-1zf7tePbdmgZ0k2b6hQT3ajda4VVPzyNJUjkFdkrhdO/exec";
+    const SHEET_URL_SABORES = "https://docs.google.com/spreadsheets/d/12Hrr5dQHt82ptzLpCmN5bCJFszQ7dFcO06GxLadBRoQ/gviz/tq?tqx=out:json&gid=549050232"; // Novo URL para a aba de sabores
 
 	let nome = localStorage.getItem("nomeCliente") || "";
 
     let produtos = [];
     let bairrosEntrega = {};
     let adicionais = [];
+    let sabores = []; // Nova variável para armazenar os sabores
     let carrinho = JSON.parse(localStorage.getItem("carrinho")) || [];
-    let horarioFuncionamento = {}; // Para armazenar os horários de funcionamento
-    let isLojaAbertaStatus = false; // Nova variável para rastrear o status da loja
-    let categoriasOrdem = []; // Para armazenar a ordem das categorias
-    let whatsappOrderNumber = ""; // Will store the WhatsApp number for orders
+    let horarioFuncionamento = {};
+    let isLojaAbertaStatus = false;
+    let categoriasOrdem = [];
+    let whatsappOrderNumber = "";
 
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
+    let saboresSelecionadosTemp = []; // Nova variável para os sabores selecionados
 
-    let tipoSelecionado = ""; // Global variable to store the selected order type
+    let tipoSelecionado = "";
 
     const diasDaSemana = ["Domingo", "Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado"];
 
     document.addEventListener("DOMContentLoaded", async () => {
-        // Carrega as configurações (logo, redes sociais, endereço, NOME DA LOJA, TELEFONES)
         await fetchConfiguracoes();
 
-        // Busca todas as outras planilhas em paralelo
         await Promise.all([
-            fetchCategoriasOrdem(), // Retornar uma Promise diretamente
+            fetchCategoriasOrdem(),
             fetch(SHEET_URL_PRODUTOS)
                 .then(res => res.text())
                 .then(text => JSON.parse(text.substr(47).slice(0, -2)))
@@ -704,8 +722,11 @@
                                 descricao: c[3]?.v,
                                 preco: parseFloat(c[4]?.v),
                                 tipoAdicional: c[5]?.v,
-                                imagem: c[7]?.v,
-                                maxAdicionais: parseInt(c[6]?.v) || 999
+                                minAdicionais: parseInt(c[6]?.v) || 0,
+                                maxAdicionais: parseInt(c[7]?.v) || 999,
+                                imagem: c[8]?.v,
+                                tipoSabor: c[9]?.v, // Nova coluna J (Sabores)
+                                maxSabores: parseInt(c[10]?.v) || 1 // Nova coluna K (Maximo Sabores)
                             };
                         });
                 }),
@@ -743,10 +764,23 @@
                             preco: parseFloat(c[2]?.v) || 0
                         };
                     });
+                }),
+            fetch(SHEET_URL_SABORES)
+                .then(res => res.text())
+                .then(text => JSON.parse(text.substr(47).slice(0, -2)))
+                .then(json => {
+                    const rows = json.table.rows;
+                    sabores = rows.map(row => {
+                        const c = row.c;
+                        return {
+                            tipo: c[0]?.v,
+                            nome: c[1]?.v,
+                            preco: parseFloat(c[2]?.v) || 0
+                        };
+                    });
                 })
         ]);
 
-        // Após todos os dados estarem carregados, renderize e configure o restante
         checkHorarioFuncionamento();
         renderCategorias();
         renderProdutos(produtos);
@@ -765,8 +799,6 @@
 
         document.getElementById("formaPagamento").addEventListener("change", toggleTrocoField);
 
-        // Inicialmente, oculte todos os campos
-        // Isso garante um estado limpo antes que um "tipo" seja selecionado
 		document.getElementById("nomeCliente").closest("label").style.display = "none";
         document.getElementById("whatsappCliente").closest("label").style.display = "none";
         document.getElementById("mesa").closest("label").style.display = "none";
@@ -774,7 +806,7 @@
         document.getElementById("numeroCasa").closest("label").style.display = "none";
         document.getElementById("bairroSelect").closest("label").style.display = "none";
         document.getElementById("formaPagamento").closest("label").style.display = "none";
-		document.getElementById("observacao").closest("label").style.display = "none";
+		document.getElementById("observacao").closest("label").style.display = "none";		
         document.getElementById("labelTroco").style.display = "none";
 
     });
@@ -789,13 +821,11 @@
             if (rows.length > 0) {
                 const configRow = rows[0].c;
 
-                // Nome da Loja (Coluna A, índice 0)
                 const storeName = configRow[0]?.v;
                 if (storeName) {
                     document.getElementById("footer-store-name").textContent = storeName;
                 }
 
-                // Logo (Coluna B, índice 1)
                 const logoUrl = configRow[1]?.v;
                 if (logoUrl) {
                     document.getElementById("logo-img").src = logoUrl;
@@ -803,7 +833,6 @@
 
                 }
 
-                // Social Media Links (Colunas C, D, E, índices 2, 3, 4)
                 const instagramLink = configRow[2]?.v;
                 const facebookLink = configRow[3]?.v;
                 const whatsappLink = configRow[4]?.v;
@@ -816,10 +845,9 @@
                 }
                 if (whatsappLink) {
                     document.getElementById("whatsapp-link").href = 'https://wa.me/' + whatsappLink;
-                    whatsappOrderNumber = whatsappLink; // Assign to global variable for orders
+                    whatsappOrderNumber = whatsappLink;
                 }
 
-                // Address (Coluna F, índice 5)
                 const footerAddress = configRow[5]?.v;
                 if (footerAddress) {
                     document.getElementById("footer-address").textContent = footerAddress;
@@ -834,16 +862,15 @@
                     document.getElementById("footer-contact-phones").textContent = contactPhones;
                 }
 
-                // Operating Hours (Agora começando da Coluna H, índice 7)
                 horarioFuncionamento = {};
                 rows.forEach(row => {
                     const c = row.c;
-                    if (c[7]?.v) { // Dia da Semana é c[7]
+                    if (c[7]?.v) {
                         horarioFuncionamento[c[7].v] = {
-                            abertura: c[8]?.f, // Abertura é c[8]
-                            almocoInicio: c[9]?.f, // Almoco Inicio é c[9]
-                            almocoFim: c[10]?.f, // Almoco Fim é c[10]
-                            fechamento: c[11]?.f // Fechamento é c[11]
+                            abertura: c[8]?.f,
+                            almocoInicio: c[9]?.f,
+                            almocoFim: c[10]?.f,
+                            fechamento: c[11]?.f
                         };
                     }
                 });
@@ -872,78 +899,77 @@
 
         } catch (error) {
             console.error("Erro ao carregar a ordem das categorias:", error);
-            categoriasOrdem = []; // Fallback to empty array
+            categoriasOrdem = [];
         }
     }
 
-    function checkHorarioFuncionamento() {
-        if (!horarioFuncionamento) {
-            exibirPopupLojaFechada("Não foi possível carregar os horários de funcionamento.");
-            isLojaAbertaStatus = false;
-            updateFinalizarPedidoButton();
-			//atualizarStatusLojaVisual();
-            return;
-        }
-
-        const now = new Date();
-        const diaAtual = diasDaSemana[now.getDay()]; // 0 = Domingo, 1 = Segunda, etc.
-        const horaAtual = now.getHours() * 60 + now.getMinutes(); // Minutos desde a meia-noite
-
-        const configDia = horarioFuncionamento[diaAtual];
-
-        if (!configDia || !configDia.abertura || !configDia.fechamento) {
-            exibirPopupLojaFechada(`Não funcionamos na ${diaAtual}.`);
-            isLojaAbertaStatus = false;
-            updateFinalizarPedidoButton();
-            return;
-        }
-
-        const parseTime = (timeStr) => {
-            if (!timeStr) return -1; // -1 para indicar que não há horário definido
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
-        };
-
-        const abertura = parseTime(configDia.abertura);
-        const fechamento = parseTime(configDia.fechamento);
-        const almocoInicio = parseTime(configDia.almocoInicio);
-        const almocoFim = parseTime(configDia.almocoFim);
-
-        let isLojaAbertaLocal = false;
-        let mensagem = "";
-
-        if (abertura === -1 || fechamento === -1) {
-            isLojaAbertaLocal = false;
-            mensagem = `Os horários de abertura ou fechamento para ${diaAtual} não estão configurados corretamente.`;
-        } else if (horaAtual >= abertura && horaAtual < fechamento) {
-            // Está dentro do horário de funcionamento geral
-            if (almocoInicio !== -1 && almocoFim !== -1 && horaAtual >= almocoInicio && horaAtual < almocoFim) {
-                // Está dentro do horário de almoço
-                isLojaAbertaLocal = false;
-                mensagem = `Olá, ${nome}! Fizemos uma pausa e retornaremos às ${configDia.almocoFim}.`;
-            } else {
-                isLojaAbertaLocal = true;
-                mensagem = `Olá, ${nome}! Estamos abertos até as ${configDia.fechamento}! Faça seu pedido.`;
-            }
-        } else {
-            // Fora do horário de funcionamento geral
-            isLojaAbertaLocal = false;
-            mensagem = `Olá, ${nome}! No momento estamos fechados. Nosso horário de funcionamento na ${diaAtual} é de ${configDia.abertura} às ${configDia.fechamento}.`;
-            //***if (almocoInicio !== -1 && almocoFim !== -1) {
-            //    mensagem += ` Com intervalo das ${configDia.almocoInicio} às ${configDia.almocoFim}.`;
-            //}
-        }
-
-        isLojaAbertaStatus = isLojaAbertaLocal; // Atualiza o status global
-
-        if (!isLojaAbertaStatus) {
-            exibirPopupLojaFechada(mensagem);
-        } else {
-           // Apenas loga se estiver aberto, não exibe popup
-        }
-        updateFinalizarPedidoButton();
-		atualizarStatusLojaVisual();
-    }
+	async function checkHorarioFuncionamento() {
+		if (!horarioFuncionamento) {
+			exibirPopupLojaFechada("Não foi possível carregar os horários de funcionamento.");
+			isLojaAbertaStatus = false;
+			updateFinalizarPedidoButton();
+			return;
+		}
+		
+		try {
+			const response = await fetch('https://script.google.com/macros/s/AKfycbyChAN4TbWQwfqAOuPu_zn1sI8uMiBYkOXaRNYL7sJIClWYgWOvAXonUo1IqBCH6Wki/exec');
+			const data = await response.json();
+			const serverTime = new Date(data.datetime);
+			const diaAtual = diasDaSemana[serverTime.getDay()];
+			const horaAtual = serverTime.getHours() * 60 + serverTime.getMinutes();
+		
+			const configDia = horarioFuncionamento[diaAtual];
+		
+			if (!configDia || !configDia.abertura || !configDia.fechamento) {
+				exibirPopupLojaFechada(`Não funcionamos na ${diaAtual}.`);
+				isLojaAbertaStatus = false;
+				updateFinalizarPedidoButton();
+				return;
+			}
+		
+			const parseTime = (timeStr) => {
+				if (!timeStr) return -1;
+				const [hours, minutes] = timeStr.split(':').map(Number);
+				return hours * 60 + minutes;
+			};
+		
+			const abertura = parseTime(configDia.abertura);
+			const fechamento = parseTime(configDia.fechamento);
+			const almocoInicio = parseTime(configDia.almocoInicio);
+			const almocoFim = parseTime(configDia.almocoFim);
+		
+			let isLojaAbertaLocal = false;
+			let mensagem = "";
+		
+			if (abertura === -1 || fechamento === -1) {
+				mensagem = `Os horários de abertura ou fechamento para ${diaAtual} não estão configurados corretamente.`;
+			} else if (horaAtual >= abertura && horaAtual < fechamento) {
+				if (almocoInicio !== -1 && almocoFim !== -1 && horaAtual >= almocoInicio && horaAtual < almocoFim) {
+					mensagem = `Olá ${nome}. Fizemos uma pausa e retornaremos às ${configDia.almocoFim}.`;
+				} else {
+					isLojaAbertaLocal = true;
+					mensagem = `Olá ${nome}. Estamos abertos até as ${configDia.fechamento}! Faça seu pedido.`;
+				}
+			} else {
+				mensagem = `Olá ${nome}. No momento estamos fechados. Nosso horário de funcionamento na ${diaAtual} é de ${configDia.abertura} às ${configDia.fechamento}.`;
+			}
+		
+			isLojaAbertaStatus = isLojaAbertaLocal;
+		
+			if (!isLojaAbertaStatus) {
+				exibirPopupLojaFechada(mensagem);
+			}
+		
+			updateFinalizarPedidoButton();
+			atualizarStatusLojaVisual();
+		
+		} catch (error) {
+			console.error("Erro ao obter hora do servidor:", error);
+			exibirPopupLojaFechada("Não foi possível verificar o horário do servidor.");
+			isLojaAbertaStatus = false;
+			updateFinalizarPedidoButton();
+		}
+	}
 
 
     function atualizarStatusLojaVisual() {
@@ -956,12 +982,10 @@
         statusEl.style.color = "#fff";
       } else {
         statusEl.textContent = "🔴 Loja Fechada";
-        statusEl.style.background = "#dc3545";
+        statusEl.style.background = "#dc354f";
         statusEl.style.color = "#fff";
       }
     }
-
-
 
     function exibirPopupLojaFechada(mensagem) {
         document.getElementById("mensagemHorario").textContent = mensagem;
@@ -985,7 +1009,6 @@
         }
     }
 
-
     function renderCategorias() {
         const catContainer = document.getElementById("categorias");
         catContainer.innerHTML = "";
@@ -995,38 +1018,32 @@
         btnTodas.onclick = () => renderProdutos(produtos);
         catContainer.appendChild(btnTodas);
 
-        // Get unique categories from the *currently available products*
         const categoriasComProdutos = [...new Set(produtos.map(p => p.categoria))];
 
-        // Filter and sort categories based on `categoriasOrdem`
         let categoriasParaRenderizar = categoriasOrdem
             .filter(catOrder => categoriasComProdutos.includes(catOrder.nome))
             .map(catOrder => catOrder.nome);
 
-        // Add any categories from products that are not in the fetched order
-        // and ensure they are sorted alphabetically
         categoriasComProdutos.forEach(cat => {
             if (!categoriasParaRenderizar.includes(cat)) {
                 categoriasParaRenderizar.push(cat);
             }
         });
 
-        // Re-sort to maintain the order from categoriasOrdem for those present,
-        // and alphabetical for others.
         categoriasParaRenderizar.sort((a, b) => {
             const indexA = categoriasOrdem.findIndex(c => c.nome === a);
             const indexB = categoriasOrdem.findIndex(c => c.nome === b);
 
             if (indexA === -1 && indexB === -1) {
-                return a.localeCompare(b); // Both not in custom order, sort alphabetically
+                return a.localeCompare(b);
             }
             if (indexA === -1) {
-                return 1; // A is not in custom order, B is, so B comes after
+                return 1;
             }
             if (indexB === -1) {
-                return -1; // B is not in custom order, A is, so A comes after
+                return -1;
             }
-            return indexA - indexB; // Both in custom order, sort by custom order
+            return indexA - indexB;
         });
 
 
@@ -1053,35 +1070,32 @@
             categoriasMap[p.categoria].push(p);
         });
 
-        // Use the fetched category order to sort the display
         const categoriasOrdenadas = categoriasOrdem
-            .filter(cat => categoriasMap[cat.nome]) // Only include categories that have products
+            .filter(cat => categoriasMap[cat.nome])
             .map(cat => cat.nome);
 
-        // Add any categories from products that are not in the fetched order (fallback)
         const existingProductCategories = [...new Set(lista.map(p => p.categoria))];
         existingProductCategories.forEach(cat => {
             if (!categoriasOrdenadas.includes(cat)) {
                 categoriasOrdenadas.push(cat);
             }
         });
-        // Sort any newly added categories alphabetically if they weren't explicitly ordered
+        
         categoriasOrdenadas.sort((a, b) => {
             const indexA = categoriasOrdem.findIndex(c => c.nome === a);
             const indexB = categoriasOrdem.findIndex(c => c.nome === b);
 
             if (indexA === -1 && indexB === -1) {
-                return a.localeCompare(b); // Both not in custom order, sort alphabetically
+                return a.localeCompare(b);
             }
             if (indexA === -1) {
-                return 1; // A is not in custom order, B is, so B comes first
+                return 1;
             }
             if (indexB === -1) {
-                return -1; // B is not in custom order, A is, so A comes first
+                return -1;
             }
-            return indexA - indexB; // Both in custom order, sort by custom order
+            return indexA - indexB;
         });
-
 
         categoriasOrdenadas.forEach(categoria => {
             const tituloCat = document.createElement("h2");
@@ -1091,7 +1105,6 @@
             tituloCat.style.margin = "1rem 0 0.5rem 0";
             container.appendChild(tituloCat);
 
-            // Find the description for the current category
             const categoriaInfo = categoriasOrdem.find(c => c.nome === categoria);
             if (categoriaInfo && categoriaInfo.descricao) {
                 const descricaoP = document.createElement("p");
@@ -1109,10 +1122,27 @@
                 const id = `${categoria}_${index}`.replace(/\s+/g, "_");
                 const card = document.createElement("div");
                 card.className = "produto";
-                card.innerHTML =         `<img src="${p.imagem}" alt="${p.nome}" loading="lazy">
+
+                let precoDisplay;
+                if (p.tipoSabor) {
+                    const saboresDoTipo = sabores.filter(s => s.tipo === p.tipoSabor);
+                    const menorPreco = saboresDoTipo.length > 0
+                        ? Math.min(...saboresDoTipo.map(s => s.preco))
+                        : 0;
+                    if (menorPreco === 0) {
+                        precoDisplay = `A partir de Grátis`;
+                    } else {
+                        precoDisplay = `A partir de ${menorPreco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    }
+                } else {
+                    precoDisplay = p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                }
+
+                card.innerHTML = `
+                    <img src="${p.imagem}" alt="${p.nome}" loading="lazy">
                     <h3>${p.nome}</h3>
                     <p>${p.descricao}</p>
-                    <p class="valor" ><strong>${p.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong></p>
+                    <p class="valor"><strong>${precoDisplay}</strong></p>
                     <div class="quantidade-container">
                         <button onclick="alterarQuantidade('subtrair', '${id}')">-</button>
                         <span id="qtd_${id}">1</span>
@@ -1144,56 +1174,90 @@
 
         produtoSelecionadoParaAdicionais = { ...produto, quantidade: qtd, idOriginal: id };
         adicionaisSelecionadosTemp = [];
+        saboresSelecionadosTemp = [];
 
-        if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
+        if (produto.tipoAdicional && produto.tipoAdicional !== "Não" || produto.tipoSabor) {
             abrirPopupAdicionais(produto);
         } else {
             adicionarAoCarrinhoFinal({
                 ...produtoSelecionadoParaAdicionais,
-                adicionais: []
+                adicionais: [],
+                sabores: []
             });
         }
     }
-
+    
     function abrirPopupAdicionais(produto) {
-        document.getElementById("adicionalProdutoNome").textContent = `Adicionais para ${produto.nome}`;
-        const adicionalLimitText = document.getElementById("adicionalLimitText");
-        if (produto.maxAdicionais && produto.maxAdicionais !== 999) {
-            adicionalLimitText.textContent = `Selecione até ${produto.maxAdicionais} adicional(is).`;
-        } else {
-            adicionalLimitText.textContent = "";
-        }
-
-
+        document.getElementById("adicionalProdutoNome").textContent = `Opções para ${produto.nome}`;
+        const listaSaboresDiv = document.getElementById("listaSabores");
         const listaAdicionaisDiv = document.getElementById("listaAdicionais");
+        listaSaboresDiv.innerHTML = "";
         listaAdicionaisDiv.innerHTML = "";
+        
+        listaSaboresDiv.style.display = "none";
+        listaAdicionaisDiv.style.display = "none";
 
-        const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
+        // Lógica para os Sabores
+        if (produto.tipoSabor) {
+            const saboresFiltrados = sabores.filter(s => s.tipo === produto.tipoSabor);
+            if (saboresFiltrados.length > 0) {
+				listaSaboresDiv.style.display = "block";
+				const saboresTitle = document.createElement("h4");
+                saboresTitle.textContent = "Sabores";
+                listaSaboresDiv.appendChild(saboresTitle);
 
-        if (adicionaisFiltrados.length === 0) {
-            adicionarAoCarrinhoFinal({
-                ...produtoSelecionadoParaAdicionais,
-                adicionais: []
-            });
-            return;
+				const infoLimitSabores = document.createElement("p");
+				infoLimitSabores.className = "info-limit";
+				infoLimitSabores.id = "saboresLimitText";
+				listaSaboresDiv.appendChild(infoLimitSabores);
+
+                saboresFiltrados.forEach(sabor => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "adicional-item";
+                    const precoSaborText = sabor.preco === 0 ? 'Grátis' : `${sabor.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    itemDiv.innerHTML = `<label>
+                        <input type="checkbox" data-type="sabor" data-nome="${sabor.nome}" data-preco="${sabor.preco.toFixed(2)}">
+                        ${sabor.nome}
+                    </label>
+                    <span>${precoSaborText}</span>`;
+                    listaSaboresDiv.appendChild(itemDiv);
+                });
+            }
         }
 
-        adicionaisFiltrados.forEach(adicional => {
-            const itemDiv = document.createElement("div");
-            itemDiv.className = "adicional-item";
-            itemDiv.innerHTML =         `<label>
-                <input type="checkbox" data-nome="${adicional.nome}" data-preco="${adicional.preco.toFixed(2)}">
-                ${adicional.nome}
-            </label>
-            <span>+ ${adicional.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>`;
-            listaAdicionaisDiv.appendChild(itemDiv);
+        // Lógica para os Adicionais
+        if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
+            const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
+            if (adicionaisFiltrados.length > 0) {
+				listaAdicionaisDiv.style.display = "block";
+				const adicionaisTitle = document.createElement("h4");
+                adicionaisTitle.textContent = "Adicionais";
+                listaAdicionaisDiv.appendChild(adicionaisTitle);
+
+				const infoLimitAdicionais = document.createElement("p");
+				infoLimitAdicionais.className = "info-limit";
+				infoLimitAdicionais.id = "adicionalLimitText";
+				listaAdicionaisDiv.appendChild(infoLimitAdicionais);
+
+                adicionaisFiltrados.forEach(adicional => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "adicional-item";
+                    const precoAdicionalText = adicional.preco === 0 ? 'Grátis' : `+ ${adicional.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    itemDiv.innerHTML = `<label>
+                        <input type="checkbox" data-type="adicional" data-nome="${adicional.nome}" data-preco="${adicional.preco.toFixed(2)}">
+                        ${adicional.nome}
+                    </label>
+                    <span>${precoAdicionalText}</span>`;
+                    listaAdicionaisDiv.appendChild(itemDiv);
+                });
+            }
+        }
+        
+        document.querySelectorAll('#popupAdicionais input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', updateTotalProdutoComSabores);
         });
 
-        listaAdicionaisDiv.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', actualizarTotalProdutoComAdicionais);
-        });
-
-        actualizarTotalProdutoComAdicionais();
+        updateTotalProdutoComSabores();
         document.getElementById("popupAdicionais").classList.add("ativo");
     }
 
@@ -1201,71 +1265,148 @@
         document.getElementById("popupAdicionais").classList.remove("ativo");
         produtoSelecionadoParaAdicionais = null;
         adicionaisSelecionadosTemp = [];
+        saboresSelecionadosTemp = [];
     }
 
-    function actualizarTotalProdutoComAdicionais() {
+    function updateTotalProdutoComSabores() {
         let totalProduto = produtoSelecionadoParaAdicionais.preco;
         adicionaisSelecionadosTemp = [];
+        saboresSelecionadosTemp = [];
+		let maxSaborPreco = 0;
 
-        const checkboxes = document.querySelectorAll('#listaAdicionais input[type="checkbox"]');
-        let selectedCount = 0;
+        const checkboxes = document.querySelectorAll('#popupAdicionais input[type="checkbox"]');
+        let selectedSaboresCount = 0;
+        let selectedAdicionaisCount = 0;
 
         checkboxes.forEach(checkbox => {
             if (checkbox.checked) {
-                selectedCount++;
+                if (checkbox.dataset.type === "sabor") {
+                    selectedSaboresCount++;
+					const precoSabor = parseFloat(checkbox.dataset.preco);
+					if (precoSabor > maxSaborPreco) {
+						maxSaborPreco = precoSabor;
+					}
+                } else if (checkbox.dataset.type === "adicional") {
+                    selectedAdicionaisCount++;
+                }
             }
         });
+		
+		totalProduto += maxSaborPreco;
 
-        const maxAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
+        const maxSaboresAllowed = produtoSelecionadoParaAdicionais.maxSabores;
+        const minSaboresAllowed = 1;
+        const maxAdicionaisAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
+        const minAdicionaisAllowed = produtoSelecionadoParaAdicionais.minAdicionais;
 
         checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                const nome = checkbox.dataset.nome;
-                const preco = parseFloat(checkbox.dataset.preco);
-                totalProduto += preco;
-                adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
-            } else if (selectedCount >= maxAllowed && maxAllowed !== 999) {
+            const isSabor = checkbox.dataset.type === "sabor";
+            const isAdicional = checkbox.dataset.type === "adicional";
+
+            if (isSabor && selectedSaboresCount >= maxSaboresAllowed && !checkbox.checked) {
+                checkbox.disabled = true;
+            } else if (isAdicional && selectedAdicionaisCount >= maxAdicionaisAllowed && maxAdicionaisAllowed !== 999 && !checkbox.checked) {
                 checkbox.disabled = true;
             } else {
                 checkbox.disabled = false;
             }
+            
+            if (checkbox.checked) {
+                const nome = checkbox.dataset.nome;
+                const preco = parseFloat(checkbox.dataset.preco);
+                
+                if (isAdicional) {
+                    totalProduto += preco;
+                    adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
+                } else if (isSabor) {
+                    saboresSelecionadosTemp.push({ nome: nome, preco: preco });
+                }
+            }
         });
 
-        // Update the limit message
         const adicionalLimitText = document.getElementById("adicionalLimitText");
-        if (maxAllowed !== 999) {
-            adicionalLimitText.textContent = `Selecione até ${maxAllowed} adicional(is). Selecionados: ${selectedCount}`;
-            if (selectedCount >= maxAllowed) {
-                adicionalLimitText.style.color = "red";
-            } else {
-                adicionalLimitText.style.color = "#666";
+        if (adicionalLimitText) {
+            adicionalLimitText.textContent = "";
+            let textToDisplay = "";
+    
+            if (minAdicionaisAllowed !== 0 && maxAdicionaisAllowed !== 999) {
+                textToDisplay = `Selecione de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+            } else if (minAdicionaisAllowed === 0 && maxAdicionaisAllowed !== 999) {
+                textToDisplay = `Selecione até ${maxAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+            } else if (minAdicionaisAllowed !== 0 && maxAdicionaisAllowed === 999) {
+                textToDisplay = `Selecione pelo menos ${minAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+            }
+
+            if (textToDisplay) {
+                adicionalLimitText.textContent = textToDisplay;
+                const isMinViolated = minAdicionaisAllowed > 0 && selectedAdicionaisCount < minAdicionaisAllowed;
+                const isMaxViolated = maxAdicionaisAllowed !== 999 && selectedAdicionaisCount > maxAdicionaisAllowed;
+                adicionalLimitText.style.color = (isMinViolated || isMaxViolated) ? "red" : "#666";
             }
         }
 
+        const saboresLimitText = document.getElementById("saboresLimitText");
+        if(saboresLimitText) {
+            saboresLimitText.textContent = "";
+            if(produtoSelecionadoParaAdicionais.tipoSabor){
+                saboresLimitText.textContent = `Selecione de 1 a ${maxSaboresAllowed} sabor(es). Selecionados: ${selectedSaboresCount}`;
+                saboresLimitText.style.color = (selectedSaboresCount > maxSaboresAllowed || selectedSaboresCount < minSaboresAllowed) ? "red" : "#666";
+            }
+        }
+        
         const totalComAdicionais = totalProduto;
         document.getElementById("totalProdutoComAdicionais").textContent = totalComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     }
-
+    
     function adicionarAoCarrinhoComAdicionais() {
-        const maxAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
-        if (adicionaisSelecionadosTemp.length > maxAllowed && maxAllowed !== 999) {
-            alert(`Você pode selecionar no máximo ${maxAllowed} adicional(is) para este produto.`);
+        const produto = produtoSelecionadoParaAdicionais;
+        const minSaboresAllowed = 1;
+        const maxSaboresAllowed = produto.maxSabores;
+        const minAdicionaisAllowed = produto.minAdicionais;
+        const maxAdicionaisAllowed = produto.maxAdicionais;
+
+        if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
+            alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
             return;
         }
+        
+        if (adicionaisSelecionadosTemp.length < minAdicionaisAllowed || adicionaisSelecionadosTemp.length > maxAdicionaisAllowed) {
+            let message = "";
+            if(minAdicionaisAllowed > 0 && maxAdicionaisAllowed !== 999) {
+                message = `Você deve selecionar de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicionais.`;
+            } else if (minAdicionaisAllowed === 0 && maxAdicionaisAllowed !== 999) {
+                message = `Você deve selecionar até ${maxAdicionaisAllowed} adicionais.`;
+            } else if (minAdicionaisAllowed > 0 && maxAdicionaisAllowed === 999) {
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed} adicionais.`;
+            }
+            if (message) {
+                alert(message);
+                return;
+            }
+        }
+		
+		let maxSaborPreco = 0;
+		if (saboresSelecionadosTemp.length > 0) {
+            maxSaborPreco = Math.max(...saboresSelecionadosTemp.map(s => s.preco));
+        }
 
-        const produtoComAdicionais = {
-            ...produtoSelecionadoParaAdicionais,
-            quantidade: produtoSelecionadoParaAdicionais.quantidade,
-            adicionais: adicionaisSelecionadosTemp
+        const produtoComOpcoes = {
+            ...produto,
+            quantidade: produto.quantidade,
+            adicionais: adicionaisSelecionadosTemp,
+            sabores: saboresSelecionadosTemp,
+			maxSaborPreco: maxSaborPreco,
         };
-        adicionarAoCarrinhoFinal(produtoComAdicionais);
+        adicionarAoCarrinhoFinal(produtoComOpcoes);
         fecharPopupAdicionais();
     }
+
 
     function adicionarAoCarrinhoFinal(item) {
         const itemExistenteIndex = carrinho.findIndex(carrinhoItem =>
             carrinhoItem.nome === item.nome &&
-            JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais)
+            JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais) &&
+            JSON.stringify(carrinhoItem.sabores) === JSON.stringify(item.sabores)
         );
 
         if (itemExistenteIndex > -1) {
@@ -1299,22 +1440,35 @@
 
         carrinho.forEach((p, i) => {
             totalItens += p.quantidade;
-            let precoItem = p.preco;
+            let precoDisplay = p.preco; // Preço base
+            let precoTotalItem = p.preco; // Preço para cálculo do total
             let descAdicionais = "";
+            let descSabores = "";
 
-            if (p.adicionais && p.adicionais.length > 0) {
-                p.adicionais.forEach(ad => {
-                    precoItem += ad.preco;
-                    descAdicionais += `\n        +${ad.nome} (${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})`;
+            if (p.sabores && p.sabores.length > 0) {
+                const maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
+                precoDisplay += maxSaborPreco; // Adiciona o sabor mais caro ao preço de exibição
+                precoTotalItem += maxSaborPreco;
+                p.sabores.forEach(s => {
+                    descSabores += `\n        • ${s.nome}`;
                 });
             }
 
-            valorTotal += precoItem * p.quantidade;
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => {
+                    precoTotalItem += ad.preco; // Adiciona o adicional somente ao cálculo do total
+                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `+${ad.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    descAdicionais += `\n        + ${ad.nome} (${precoAdicionalText})`;
+                });
+            }
+
+            valorTotal += precoTotalItem * p.quantidade;
 
             const li = document.createElement("li");
-            li.innerHTML =         `<span>
-                <strong>${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
-                ${descAdicionais ? `<small>${descAdicionais}</small>` : ''}
+            li.innerHTML = `<span>
+                <strong>${p.quantidade}x ${p.nome} - ${(precoDisplay * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
+                ${descSabores ? `<small>Sabores:${descSabores}</small><br>` : ''}
+                ${descAdicionais ? `<small>Adicionais:${descAdicionais}</small>` : ''}
             </span>
             <button onclick="removerItem(${i}, event)">X</button>`;
             lista.appendChild(li);
@@ -1322,7 +1476,6 @@
 
         contador.textContent = totalItens;
         totalSpan.textContent = valorTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
         atualizarTotalPedido();
     }
 
@@ -1357,11 +1510,10 @@
     });
 
     function finalizarPedido() {
-        // Verificar o horário antes de abrir o popup de pedido
-        checkHorarioFuncionamento(); // Re-checa e atualiza isLojaAbertaStatus e exibe popup se necessário
+        checkHorarioFuncionamento();
 
         if (!isLojaAbertaStatus) {
-            return; // Se a loja estiver fechada, a função checkHorarioFuncionamento já exibiu o popup
+            return;
         }
 
         if (carrinho.length === 0) {
@@ -1371,35 +1523,28 @@
 
         document.getElementById("carrinho").classList.remove("ativo");
 
-        // --- CARREGAR DADOS DO LOCALSTORAGE PARA OS CAMPOS ---
         document.getElementById("nomeCliente").value = localStorage.getItem("nomeCliente") || "";
 		document.getElementById("whatsappCliente").value = localStorage.getItem("whatsappCliente") || "";
-
-        // Carrega todos os campos de endereço e mesa, mesmo que não sejam do tipo atual.
-        // Se não houver valor salvo, o campo ficará vazio.
         document.getElementById("endereco").value = localStorage.getItem("endereco") || "";
         document.getElementById("numeroCasa").value = localStorage.getItem("numeroCasa") || "";
         document.getElementById("bairroSelect").value = localStorage.getItem("bairro") || "";
 
-        document.getElementById("formaPagamento").value = localStorage.getItem("formaPagamento") || "Dinheiro";
+        document.getElementById("formaPagamento").value = localStorage.getItem("formaPagamento") || "Cartão de Crédito";
 
         toggleTrocoField();
 
         atualizarTotalPedido();
 
-        // Restaurar o último tipo de pedido selecionado
         const lastTipo = localStorage.getItem("tipoPedido");
         if (lastTipo) {
             const typeButtons = document.querySelectorAll(".card-tipo");
             typeButtons.forEach(button => {
-                // Verifica se o texto do botão contém o nome do tipo (e.g., "Delivery", "Retirar no Local", "Comer na Mesa")
                 if (button.textContent.includes(lastTipo.replace("Retirada", "Retirar no Local").replace("Mesa", "Comer na Mesa"))) {
                     selecionarTipo(lastTipo, button);
                 }
             });
         }
-
-
+        
         document.getElementById("popupPedido").classList.add("ativo");
     }
 
@@ -1407,24 +1552,28 @@
         document.getElementById("popupPedido").classList.remove("ativo");
     }
 
-    function mostrarValorEntrega(bairro) {
-        // Pode ser usado para algum feedback visual (opcional)
-    }
+    function mostrarValorEntrega(bairro) {}
 
     function atualizarTotalPedido() {
         const totalProdutosCalculado = carrinho.reduce((acc, p) => {
-            let precoComAdicionais = p.preco;
-            if (p.adicionais && p.adicionais.length > 0) {
-                p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
+            let precoComOpcoes = p.preco;
+			
+			let maxSaborPreco = 0;
+            if (p.sabores && p.sabores.length > 0) {
+                maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
             }
-            return acc + precoComAdicionais * p.quantidade;
+			precoComOpcoes += maxSaborPreco;
+
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => precoComOpcoes += ad.preco);
+            }
+            return acc + precoComOpcoes * p.quantidade;
         }, 0);
 
         const bairro = document.getElementById("bairroSelect").value;
         const taxaEntrega = bairrosEntrega[bairro] || 0;
         let total = totalProdutosCalculado;
 
-        // Only add delivery fee if delivery is selected
         if (tipoSelecionado === "Delivery") {
             total += taxaEntrega;
         }
@@ -1444,33 +1593,30 @@
             document.getElementById("troco").value = "";
         }
     }
-
+	
     async function enviarPedido() {
-        // Verificar o horário antes de enviar o pedido
-        checkHorarioFuncionamento(); // Re-checa e atualiza isLojaAbertaStatus e exibe popup se necessário
+        checkHorarioFuncionamento();
 
         if (!isLojaAbertaStatus) {
-            return; // Se a loja estiver fechada, a função checkHorarioFuncionamento já exibiu o popup
+            return;
         }
 
         const btnEnviarPedido = document.getElementById("btenviarpedido");
-		const spinner = btnEnviarPedido.querySelector('.loading-spinner');
+        const spinner = btnEnviarPedido.querySelector('.loading-spinner');
 
-        // Immediately disable the button to prevent multiple clicks
         btnEnviarPedido.disabled = true;
 
-		const tipo = tipoSelecionado;
+        const tipo = tipoSelecionado;
         if (!tipo) {
             alert("Por favor, selecione o tipo do pedido.");
             btnEnviarPedido.disabled = false;
             return;
         }
-		
-        //const nome = document.getElementById("nomeCliente").value.trim();  <-- ´ja está sendo atribuida no começo do script por conta das mensagens de fechado.
-		const whatsapp = document.getElementById("whatsappCliente").value.trim();
-        const observacao = document.getElementById("observacao").value.trim();
 
-        // Expressão regular para validar WhatsApp no formato xx xxxxx-xxxx
+        const nome = document.getElementById("nomeCliente").value.trim();
+        const whatsapp = document.getElementById("whatsappCliente").value.trim();
+        const observacao = document.getElementById("observacao").value.trim();
+        
         const whatsappRegex = /^\d{2} \d{5}-\d{4}$/;
         
         if (!nome) {
@@ -1499,7 +1645,6 @@
         let troco = 0;
         let taxaEntrega = 0;
 
-        // --- VALIDATION AND VALUE ASSIGNMENT FOR CURRENT ORDER TYPE ---
         if (tipo === "Delivery") {
             endereco = document.getElementById("endereco").value.trim();
             numeroCasa = document.getElementById("numeroCasa").value.trim();
@@ -1561,70 +1706,71 @@
                 return;
             }
         }
-
-        let totalPedidoFinal = 0;
-        const totalProdutosComAdicionais = carrinho.reduce((acc, p) => {
-            let precoComAdicionais = p.preco;
-            if (p.adicionais && p.adicionais.length > 0) {
-                p.adicionais.forEach(ad => precoComAdicionais += ad.preco);
+        
+        let detalhesPedidoString = "";
+        carrinho.forEach(p => {
+            let precoUnitarioComSabores = p.preco;
+            if (p.sabores && p.sabores.length > 0) {
+                const maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
+                precoUnitarioComSabores += maxSaborPreco;
             }
-            return acc + precoComAdicionais * p.quantidade;
+        
+            detalhesPedidoString += `🔹 ${p.quantidade}x ${p.nome} - ${(precoUnitarioComSabores * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        
+            if (p.sabores && p.sabores.length > 0) {
+                detalhesPedidoString += `        • Sabores: ${p.sabores.map(s => s.nome).join(', ')}\n`;
+            }
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => {
+                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `+${ad.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText})\n`;
+                });
+            }
+        });
+        
+        const totalProdutosComOpcoes = carrinho.reduce((acc, p) => {
+            let precoItem = p.preco;
+            let maxSaborPreco = 0;
+            if (p.sabores && p.sabores.length > 0) {
+                maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
+            }
+            precoItem += maxSaborPreco;
+            if (p.adicionais && p.adicionais.length > 0) {
+                p.adicionais.forEach(ad => precoItem += ad.preco);
+            }
+            return acc + precoItem * p.quantidade;
         }, 0);
-
-        totalPedidoFinal = totalProdutosComAdicionais + taxaEntrega;
-
-
-        // --- SALVAR DADOS NO LOCALSTORAGE DE FORMA INTELIGENTE ---
+        
+        const totalPedidoFinal = totalProdutosComOpcoes + taxaEntrega;
+        
+        // Salva dados no localStorage
         localStorage.setItem("nomeCliente", nome);
         localStorage.setItem("whatsappCliente", whatsapp);
-        localStorage.setItem("tipoPedido", tipo); // Sempre salva o último tipo selecionado
-
-
-		if (tipo === "Retirada") {
-        // Salva forma de pagamento
-        localStorage.setItem("formaPagamento", formaPagamento);
-		}
-
-        // Salva campos específicos do tipo SOMENTE se eles foram relevantes para este pedido
+        localStorage.setItem("tipoPedido", tipo);
+        if (tipo === "Retirada" || tipo === "Delivery") {
+            localStorage.setItem("formaPagamento", formaPagamento);
+        }
         if (tipo === "Delivery") {
-			localStorage.setItem("formaPagamento", formaPagamento);
             localStorage.setItem("endereco", endereco);
             localStorage.setItem("numeroCasa", numeroCasa);
             localStorage.setItem("bairro", bairro);
         }
-
-
-        let detalhesPedidoString = "";
-        carrinho.forEach(p => {
-            let precoUnitarioComAdicionais = p.preco;
-            let adicionaisTextoDetalhe = "";
-            if (p.adicionais && p.adicionais.length > 0) {
-                p.adicionais.forEach(ad => {
-                    precoUnitarioComAdicionais += ad.preco;
-                    adicionaisTextoDetalhe += ` + ${ad.nome} (R$${(ad.preco * p.quantidade).toFixed(2).replace('.', ',')})`;
-                });
-            }
-            detalhesPedidoString += `${p.quantidade}x ${p.nome} (R$${(p.preco * p.quantidade).toFixed(2).replace('.', ',')}) ${adicionaisTextoDetalhe}\n`;
-        });
-        detalhesPedidoString = detalhesPedidoString.trim();
-		
-		// Desabilita o botão e exibe o spinner
-		btnEnviarPedido.disabled = true;
-		spinner.style.display = 'inline-block';
+        
+        spinner.style.display = 'inline-block';
+        btnEnviarPedido.disabled = true;
 
         try {
-            console.log("Attempting to send data to Google Apps Script...");
-            const response = await fetch(APPS_SCRIPT_WEB_APP_URL, {
+            await fetch(APPS_SCRIPT_WEB_APP_URL, {
                 method: 'POST',
                 mode: 'no-cors',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-					tipo: tipo,
-					mesa: mesa,
+                    tipo: tipo,
+                    mesa: mesa,
                     nomeCliente: nome,
-					whatsapp: whatsapp,
+                    whatsapp: whatsapp,
                     endereco: endereco,
                     numeroCasa: numeroCasa,
                     bairro: bairro,
@@ -1632,36 +1778,21 @@
                     troco: formaPagamento === "Dinheiro" ? parseFloat(troco.replace(',', '.')) : 0,
                     totalPedido: totalPedidoFinal,
                     detalhesPedido: detalhesPedidoString,
-					observacao: observacao
+                    observacao: observacao
                 }),
             });
-            console.log("Fetch request sent. Response object (if mode is not 'no-cors'):", response);
-
-            console.log("Data send attempt finished. Check Google Apps Script logs for successful processing.");
-
-            // Send to WhatsApp (existing code)
+            
             let msg = `🛒 *Novo Pedido - ${tipo}*\n`;
-			
+            
             if (tipo === "Mesa") {
                 msg += `*Mesa N°:* ${mesa}\n`;
             }
-			
+            
             msg += `👤 *Nome:* ${nome}\n`;
             msg += `📦 *Itens:*\n`;
+            msg += detalhesPedidoString;
 
-            carrinho.forEach(p => {
-                let precoUnitarioComAdicionais = p.preco;
-                let adicionaisTexto = "";
-                if (p.adicionais && p.adicionais.length > 0) {
-                    p.adicionais.forEach(ad => {
-                        precoUnitarioComAdicionais += ad.preco;
-                        adicionaisTexto += `\n        + ${ad.nome} - ${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    });
-                }
-                msg += `🔹 ${p.quantidade}x ${p.nome} - ${(p.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}${adicionaisTexto}\n`;
-            });
-
-            msg += `\n💰 *Total dos Produtos:* ${totalProdutosComAdicionais.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+            msg += `\n💰 *Total dos Produtos:* ${totalProdutosComOpcoes.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
             
             if (tipo === "Delivery") {
                 msg += `🚚 *Taxa de Entrega:* ${taxaEntrega.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
@@ -1669,37 +1800,34 @@
             
             msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
             
-            if (tipo !== "Mesa") { // Payment info for Delivery and Retirada
+            if (tipo !== "Mesa") {
                 if (formaPagamento === "Dinheiro") {
                     msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
                 } else {
                     msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
                 }
             } else {
-                msg += `\n`; // Add a line break for consistency
+                msg += `\n`;
             }
 
             if (tipo === "Delivery") {
                 msg += `🏠 *Endereço:* ${endereco}, Nº ${numeroCasa}, Bairro ${bairro}\n`;
             }
-			
-            if (observacao === "") {
-            } else {
+            
+            if (observacao) {
                 msg += `*📋 Obs.:* ${observacao}\n`;
             }
-			
+            
             msg += `✅ *Aguardo confirmação!*`;
-			
-			
-			// Oculta o spinner e reativa o botão ANTES do alerta
-			spinner.style.display = 'none';
-			btnEnviarPedido.disabled = false;
-		
-			alert('✅ Pedido enviado com sucesso!');			
+            
+            
+            spinner.style.display = 'none';
+            btnEnviarPedido.disabled = false;
+        
+            alert('✅ Pedido enviado com sucesso!');            
 
-            const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`; // Using whatsappOrderNumber
+            const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
-
 
             carrinho = [];
             localStorage.removeItem("carrinho");
@@ -1710,8 +1838,8 @@
             console.error("Erro ao enviar pedido para o Apps Script:", error);
             alert("Erro ao finalizar o pedido. Por favor, tente novamente. Verifique o console do navegador para mais detalhes.");
         } finally {
-            // Re-enable the button regardless of success or failure
             btnEnviarPedido.disabled = false;
+            spinner.style.display = 'none';
         }
     }
 	
@@ -1754,7 +1882,6 @@ function selecionarTipo(tipo, elemento) {
 	const observacaoField = document.getElementById("observacao").closest("label");
     const trocoField = document.getElementById("labelTroco");
 
-    // Reset all fields to hidden first
 	nomeField.style.display = "block";
     whatsappField.style.display = "block";
     observacaoField.style.display = "block";
@@ -1766,22 +1893,19 @@ function selecionarTipo(tipo, elemento) {
     trocoField.style.display = "none";
 
 
-
     if (tipo === "Delivery") {
         enderecoField.style.display = "block";
         numeroCasaField.style.display = "block";
         bairroField.style.display = "block";
         formaPagamentoField.style.display = "block";
-        toggleTrocoField(); // Show troco if Dinheiro is selected
+        toggleTrocoField();
     } else if (tipo === "Retirada") {
         formaPagamentoField.style.display = "block";
-        toggleTrocoField(); // Show troco if Dinheiro is selected
+        toggleTrocoField();
     } else if (tipo === "Mesa") {
         mesaField.style.display = "block";
-        // No address or payment fields for "Mesa"
     }
 
-    // Update total to reflect delivery fee change
     atualizarTotalPedido();
 }
 
@@ -1815,8 +1939,6 @@ function selecionarTipo(tipo, elemento) {
         }
       }
 
-
-
     
       document.getElementById("popupHorarios").classList.add("ativo");
     }
@@ -1827,9 +1949,9 @@ function selecionarTipo(tipo, elemento) {
     
 	
 	document.getElementById("whatsappCliente").addEventListener("input", function (e) {
-    let value = e.target.value.replace(/\D/g, ""); // Remove tudo que não for dígito
+    let value = e.target.value.replace(/\D/g, "");
 
-    if (value.length > 11) value = value.slice(0, 11); // Limita a 11 dígitos
+    if (value.length > 11) value = value.slice(0, 11);
 
     if (value.length >= 7) {
         e.target.value = value.replace(/^(\d{2})(\d{5})(\d{0,4})/, "$1 $2-$3");
