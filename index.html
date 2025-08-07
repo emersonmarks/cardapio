@@ -1781,6 +1781,8 @@
                     observacao: observacao
                 }),
             });
+
+			alert('✅ Pedido enviado com sucesso!');
             
             let msg = `🛒 *Novo Pedido - ${tipo}*\n`;
             
@@ -1822,9 +1824,7 @@
             
             
             spinner.style.display = 'none';
-            btnEnviarPedido.disabled = false;
-
-			alert('✅ Pedido enviado com sucesso!'); 
+            btnEnviarPedido.disabled = false; 
 
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
@@ -1967,6 +1967,7 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
+
 
 
 
