@@ -1827,12 +1827,12 @@
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
 
-			alert('✅ Pedido enviado com sucesso!'); 
-
             carrinho = [];
             localStorage.removeItem("carrinho");
             renderCarrinho();
             fecharPopup();
+
+			alert('✅ Pedido enviado com sucesso!'); 
 
         } catch (error) {
             console.error("Erro ao enviar pedido para o Apps Script:", error);
@@ -1967,4 +1967,5 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
+
 
