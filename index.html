@@ -1822,12 +1822,12 @@
             
             
             spinner.style.display = 'none';
-            btnEnviarPedido.disabled = false;
-        
-            alert('✅ Pedido enviado com sucesso!');            
+            btnEnviarPedido.disabled = false;           
 
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
+
+			alert('✅ Pedido enviado com sucesso!'); 
 
             carrinho = [];
             localStorage.removeItem("carrinho");
@@ -1967,3 +1967,4 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
+
