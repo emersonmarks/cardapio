@@ -721,12 +721,13 @@
                                 categoria: c[2]?.v,
                                 descricao: c[3]?.v,
                                 preco: parseFloat(c[4]?.v),
-                                tipoAdicional: c[5]?.v,
-                                minAdicionais: parseInt(c[6]?.v) || 0,
-                                maxAdicionais: parseInt(c[7]?.v) || 999,
-                                imagem: c[8]?.v,
-                                tipoSabor: c[9]?.v, // Nova coluna J (Sabores)
-                                maxSabores: parseInt(c[10]?.v) || 1 // Nova coluna K (Maximo Sabores)
+                                tipoSabor: c[5]?.v,
+                                maxSabores: parseInt(c[6]?.v) || 1,
+                                tipoAdicional: c[7]?.v,
+                                minAdicionais: parseInt(c[8]?.v) || 0,
+                                maxAdicionais: parseInt(c[9]?.v) || 999,
+                                imagem: c[13]?.v,
+
                             };
                         });
                 }),
@@ -1967,10 +1968,3 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
-
-
-
-
-
-
-
