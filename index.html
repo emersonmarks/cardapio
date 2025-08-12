@@ -629,6 +629,7 @@
         
         <div id="listaSabores" class="adicionais-group"></div>
         <div id="listaAdicionais" class="adicionais-group"></div>
+		<div id="listaAdicionais2" class="adicionais-group"></div>
         
         <p>
             Total do Produto com Adicionais:
@@ -696,6 +697,7 @@
 
     let produtoSelecionadoParaAdicionais = null;
     let adicionaisSelecionadosTemp = [];
+	let adicionaisSelecionadosTemp2 = [];
     let saboresSelecionadosTemp = []; // Nova variável para os sabores selecionados
 
     let tipoSelecionado = "";
@@ -726,6 +728,9 @@
                                 tipoAdicional: c[7]?.v,
                                 minAdicionais: parseInt(c[8]?.v) || 0,
                                 maxAdicionais: parseInt(c[9]?.v) || 999,
+								tipoAdicional2: c[10]?.v,
+                                minAdicionais2: parseInt(c[11]?.v) || 0,
+                                maxAdicionais2: parseInt(c[12]?.v) || 999,
                                 imagem: c[13]?.v,
 
                             };
@@ -1175,9 +1180,10 @@
 
         produtoSelecionadoParaAdicionais = { ...produto, quantidade: qtd, idOriginal: id };
         adicionaisSelecionadosTemp = [];
+		adicionaisSelecionadosTemp2 = [];
         saboresSelecionadosTemp = [];
 
-        if (produto.tipoAdicional && produto.tipoAdicional !== "Não" || produto.tipoSabor) {
+        if (produto.tipoAdicional && produto.tipoAdicional !== "Não" || produto.tipoAdicional2 && produto.tipoAdicional2 !== "Não" || produto.tipoSabor) {
             abrirPopupAdicionais(produto);
         } else {
             adicionarAoCarrinhoFinal({
@@ -1192,11 +1198,14 @@
         document.getElementById("adicionalProdutoNome").textContent = `Opções para ${produto.nome}`;
         const listaSaboresDiv = document.getElementById("listaSabores");
         const listaAdicionaisDiv = document.getElementById("listaAdicionais");
+		const listaAdicionaisDiv2 = document.getElementById("listaAdicionais2");
         listaSaboresDiv.innerHTML = "";
         listaAdicionaisDiv.innerHTML = "";
-        
+        listaAdicionaisDiv2.innerHTML = "";
+		
         listaSaboresDiv.style.display = "none";
         listaAdicionaisDiv.style.display = "none";
+		listaAdicionaisDiv2.style.display = "none";
 
         // Lógica para os Sabores
         if (produto.tipoSabor) {
@@ -1226,13 +1235,13 @@
             }
         }
 
-        // Lógica para os Adicionais
+        // Lógica para os Adicionais 1
         if (produto.tipoAdicional && produto.tipoAdicional !== "Não") {
             const adicionaisFiltrados = adicionais.filter(a => a.tipo === produto.tipoAdicional);
             if (adicionaisFiltrados.length > 0) {
 				listaAdicionaisDiv.style.display = "block";
 				const adicionaisTitle = document.createElement("h4");
-                adicionaisTitle.textContent = "Adicionais";
+                adicionaisTitle.textContent = "Adicionais 1";
                 listaAdicionaisDiv.appendChild(adicionaisTitle);
 
 				const infoLimitAdicionais = document.createElement("p");
@@ -1253,6 +1262,36 @@
                 });
             }
         }
+		
+		
+        // Lógica para os Adicionais 2
+        if (produto.tipoAdicional2 && produto.tipoAdicional2 !== "Não") {
+            const adicionaisFiltrados2 = adicionais.filter(a => a.tipo === produto.tipoAdicional2);
+            if (adicionaisFiltrados2.length > 0) {
+				listaAdicionaisDiv2.style.display = "block";
+				const adicionaisTitle = document.createElement("h4");
+                adicionaisTitle.textContent = "Adicionais 2";
+                listaAdicionaisDiv2.appendChild(adicionaisTitle);
+
+				const infoLimitAdicionais = document.createElement("p");
+				infoLimitAdicionais.className = "info-limit";
+				infoLimitAdicionais.id = "adicionalLimitText2";
+				listaAdicionaisDiv2.appendChild(infoLimitAdicionais);
+
+                adicionaisFiltrados2.forEach(adicional2 => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "adicional-item";
+                    const precoAdicionalText2 = adicional2.preco === 0 ? 'Grátis' : `+ ${adicional2.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    itemDiv.innerHTML = `<label>
+                        <input type="checkbox" data-type="adicional2" data-nome="${adicional2.nome}" data-preco="${adicional2.preco.toFixed(2)}">
+                        ${adicional2.nome}
+                    </label>
+                    <span>${precoAdicionalText2}</span>`;
+                    listaAdicionaisDiv2.appendChild(itemDiv);
+                });
+            }
+        }		
+		
         
         document.querySelectorAll('#popupAdicionais input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', updateTotalProdutoComSabores);
@@ -1266,18 +1305,21 @@
         document.getElementById("popupAdicionais").classList.remove("ativo");
         produtoSelecionadoParaAdicionais = null;
         adicionaisSelecionadosTemp = [];
+		adicionaisSelecionadosTemp2 = [];
         saboresSelecionadosTemp = [];
     }
 
     function updateTotalProdutoComSabores() {
         let totalProduto = produtoSelecionadoParaAdicionais.preco;
         adicionaisSelecionadosTemp = [];
+		adicionaisSelecionadosTemp2 = [];
         saboresSelecionadosTemp = [];
 		let maxSaborPreco = 0;
 
         const checkboxes = document.querySelectorAll('#popupAdicionais input[type="checkbox"]');
         let selectedSaboresCount = 0;
         let selectedAdicionaisCount = 0;
+		let selectedAdicionaisCount2 = 0;
 
         checkboxes.forEach(checkbox => {
             if (checkbox.checked) {
@@ -1289,6 +1331,8 @@
 					}
                 } else if (checkbox.dataset.type === "adicional") {
                     selectedAdicionaisCount++;
+                } else if (checkbox.dataset.type === "adicional2") {
+                    selectedAdicionaisCount2++;
                 }
             }
         });
@@ -1299,16 +1343,21 @@
         const minSaboresAllowed = 1;
         const maxAdicionaisAllowed = produtoSelecionadoParaAdicionais.maxAdicionais;
         const minAdicionaisAllowed = produtoSelecionadoParaAdicionais.minAdicionais;
+        const maxAdicionaisAllowed2 = produtoSelecionadoParaAdicionais.maxAdicionais2;
+        const minAdicionaisAllowed2 = produtoSelecionadoParaAdicionais.minAdicionais2;
 
         checkboxes.forEach(checkbox => {
             const isSabor = checkbox.dataset.type === "sabor";
             const isAdicional = checkbox.dataset.type === "adicional";
+			const isAdicional2 = checkbox.dataset.type === "adicional2";
 
             if (isSabor && selectedSaboresCount >= maxSaboresAllowed && !checkbox.checked) {
                 checkbox.disabled = true;
             } else if (isAdicional && selectedAdicionaisCount >= maxAdicionaisAllowed && maxAdicionaisAllowed !== 999 && !checkbox.checked) {
                 checkbox.disabled = true;
-            } else {
+            } else if (isAdicional2 && selectedAdicionaisCount2 >= maxAdicionaisAllowed2 && maxAdicionaisAllowed2 !== 999 && !checkbox.checked) {
+                checkbox.disabled = true;
+            }else {
                 checkbox.disabled = false;
             }
             
@@ -1319,6 +1368,9 @@
                 if (isAdicional) {
                     totalProduto += preco;
                     adicionaisSelecionadosTemp.push({ nome: nome, preco: preco });
+                } else if (isAdicional2) {
+                    totalProduto += preco;
+                    adicionaisSelecionadosTemp2.push({ nome: nome, preco: preco });
                 } else if (isSabor) {
                     saboresSelecionadosTemp.push({ nome: nome, preco: preco });
                 }
@@ -1331,11 +1383,11 @@
             let textToDisplay = "";
     
             if (minAdicionaisAllowed !== 0 && maxAdicionaisAllowed !== 999) {
-                textToDisplay = `Selecione de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+                textToDisplay = `Selecione de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} opção(ões). Selecionados: ${selectedAdicionaisCount}`;
             } else if (minAdicionaisAllowed === 0 && maxAdicionaisAllowed !== 999) {
-                textToDisplay = `Selecione até ${maxAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+                textToDisplay = `Selecione até ${maxAdicionaisAllowed} opção(ões). Selecionados: ${selectedAdicionaisCount}`;
             } else if (minAdicionaisAllowed !== 0 && maxAdicionaisAllowed === 999) {
-                textToDisplay = `Selecione pelo menos ${minAdicionaisAllowed} adicional(is). Selecionados: ${selectedAdicionaisCount}`;
+                textToDisplay = `Selecione pelo menos ${minAdicionaisAllowed} opção(ões). Selecionados: ${selectedAdicionaisCount}`;
             }
 
             if (textToDisplay) {
@@ -1345,6 +1397,31 @@
                 adicionalLimitText.style.color = (isMinViolated || isMaxViolated) ? "red" : "#666";
             }
         }
+		
+		
+		
+		const adicionalLimitText2 = document.getElementById("adicionalLimitText2");
+        if (adicionalLimitText2) {
+            adicionalLimitText2.textContent = "";
+            let textToDisplay2 = "";
+    
+            if (minAdicionaisAllowed2 !== 0 && maxAdicionaisAllowed2 !== 999) {
+                textToDisplay2 = `Selecione de ${minAdicionaisAllowed2} a ${maxAdicionaisAllowed2} opção(ões). Selecionados: ${selectedAdicionaisCount2}`;
+            } else if (minAdicionaisAllowed2 === 0 && maxAdicionaisAllowed2 !== 999) {
+                textToDisplay2 = `Selecione até ${maxAdicionaisAllowed2} opção(ões). Selecionados: ${selectedAdicionaisCount2}`;
+            } else if (minAdicionaisAllowed2 !== 0 && maxAdicionaisAllowed2 === 999) {
+                textToDisplay2 = `Selecione pelo menos ${minAdicionaisAllowed2} opção(ões). Selecionados: ${selectedAdicionaisCount2}`;
+            }
+
+            if (textToDisplay2) {
+                adicionalLimitText2.textContent = textToDisplay2;
+                const isMinViolated = minAdicionaisAllowed2 > 0 && selectedAdicionaisCount2 < minAdicionaisAllowed2;
+                const isMaxViolated = maxAdicionaisAllowed2 !== 999 && selectedAdicionaisCount2 > maxAdicionaisAllowed2;
+                adicionalLimitText2.style.color = (isMinViolated || isMaxViolated) ? "red" : "#666";
+            }
+        }		
+		
+			
 
         const saboresLimitText = document.getElementById("saboresLimitText");
         if(saboresLimitText) {
@@ -1363,15 +1440,23 @@
         const produto = produtoSelecionadoParaAdicionais;
         const minSaboresAllowed = 1;
         const maxSaboresAllowed = produto.maxSabores;
+		const tipoAdicional = produto.tipoAdicional;
+		const tipoAdicional2 = produto.tipoAdicional2;
         const minAdicionaisAllowed = produto.minAdicionais;
         const maxAdicionaisAllowed = produto.maxAdicionais;
+		const minAdicionaisAllowed2 = produto.minAdicionais2;
+        const maxAdicionaisAllowed2 = produto.maxAdicionais2;
 
         if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
             alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
             return;
         }
+		if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
+            alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
+            return;
+        }
         
-        if (adicionaisSelecionadosTemp.length < minAdicionaisAllowed || adicionaisSelecionadosTemp.length > maxAdicionaisAllowed) {
+        if ((tipoAdicional && tipoAdicional !== "Não" && adicionaisSelecionadosTemp.length < minAdicionaisAllowed) || adicionaisSelecionadosTemp.length > maxAdicionaisAllowed) {
             let message = "";
             if(minAdicionaisAllowed > 0 && maxAdicionaisAllowed !== 999) {
                 message = `Você deve selecionar de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicionais.`;
@@ -1379,6 +1464,22 @@
                 message = `Você deve selecionar até ${maxAdicionaisAllowed} adicionais.`;
             } else if (minAdicionaisAllowed > 0 && maxAdicionaisAllowed === 999) {
                 message = `Você deve selecionar pelo menos ${minAdicionaisAllowed} adicionais.`;
+            }
+            if (message) {
+                alert(message);
+                return;
+            }
+        }
+		
+		
+        if ((tipoAdicional2 && tipoAdicional2 !== "Não" && adicionaisSelecionadosTemp2.length < minAdicionaisAllowed2) || adicionaisSelecionadosTemp2.length > maxAdicionaisAllowed2) {
+            let message = "";
+            if(minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 !== 999) {
+                message = `Você deve selecionar de ${minAdicionaisAllowed2} a ${maxAdicionaisAllowed2} adicionais.`;
+            } else if (minAdicionaisAllowed2 === 0 && maxAdicionaisAllowed2 !== 999) {
+                message = `Você deve selecionar até ${maxAdicionaisAllowed2} adicionais.`;
+            } else if (minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 === 999) {
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed2} adicionais.`;
             }
             if (message) {
                 alert(message);
@@ -1395,6 +1496,7 @@
             ...produto,
             quantidade: produto.quantidade,
             adicionais: adicionaisSelecionadosTemp,
+			adicionais2: adicionaisSelecionadosTemp2,
             sabores: saboresSelecionadosTemp,
 			maxSaborPreco: maxSaborPreco,
         };
@@ -1407,6 +1509,7 @@
         const itemExistenteIndex = carrinho.findIndex(carrinhoItem =>
             carrinhoItem.nome === item.nome &&
             JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais) &&
+			JSON.stringify(carrinhoItem.adicionais2) === JSON.stringify(item.adicionais2) &&
             JSON.stringify(carrinhoItem.sabores) === JSON.stringify(item.sabores)
         );
 
@@ -1444,6 +1547,7 @@
             let precoDisplay = p.preco; // Preço base
             let precoTotalItem = p.preco; // Preço para cálculo do total
             let descAdicionais = "";
+			let descAdicionais2 = "";
             let descSabores = "";
 
             if (p.sabores && p.sabores.length > 0) {
@@ -1462,6 +1566,14 @@
                     descAdicionais += `\n        + ${ad.nome} (${precoAdicionalText})`;
                 });
             }
+			
+			if (p.adicionais2 && p.adicionais2.length > 0) {
+                p.adicionais2.forEach(ad => {
+                    precoTotalItem += ad.preco; // Adiciona o adicional somente ao cálculo do total
+                    const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    descAdicionais2 += `\n        + ${ad.nome} (${precoAdicionalText2})`;
+                });
+            }
 
             valorTotal += precoTotalItem * p.quantidade;
 
@@ -1469,7 +1581,8 @@
             li.innerHTML = `<span>
                 <strong>${p.quantidade}x ${p.nome} - ${(precoDisplay * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
                 ${descSabores ? `<small>Sabores:${descSabores}</small><br>` : ''}
-                ${descAdicionais ? `<small>Adicionais:${descAdicionais}</small>` : ''}
+                ${descAdicionais ? `<small>Adicionais:${descAdicionais}</small><br>` : ''}
+				${descAdicionais2 ? `<small>Adicionais:${descAdicionais2}</small>` : ''}
             </span>
             <button onclick="removerItem(${i}, event)">X</button>`;
             lista.appendChild(li);
@@ -1719,12 +1832,26 @@
             detalhesPedidoString += `🔹 ${p.quantidade}x ${p.nome} - ${(precoUnitarioComSabores * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
         
             if (p.sabores && p.sabores.length > 0) {
-                detalhesPedidoString += `        • Sabores: ${p.sabores.map(s => s.nome).join(', ')}\n`;
+                detalhesPedidoString += `     Sabores:`;
+				
+				p.sabores.forEach(s => {
+                    detalhesPedidoString += ` • ${s.nome}`;
+                });
+				detalhesPedidoString += `\n`;
             }
             if (p.adicionais && p.adicionais.length > 0) {
+				detalhesPedidoString += `     Adicionais:\n`;
                 p.adicionais.forEach(ad => {
                     const precoAdicionalText = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText})\n`;
+                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText})\n`;
+                });
+            }
+			
+			if (p.adicionais2 && p.adicionais2.length > 0) {
+				detalhesPedidoString += `     Adicionais:\n`;
+                p.adicionais2.forEach(ad => {
+                    const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText2})\n`;
                 });
             }
         });
@@ -1783,7 +1910,7 @@
                 }),
             });
 
-			alert('✅ Pedido enviado com sucesso!');
+			9
             
             let msg = `🛒 *Novo Pedido - ${tipo}*\n`;
             
@@ -1968,3 +2095,7 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
+
+
+
+
