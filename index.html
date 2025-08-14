@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1781,6 +1782,13 @@
             if (p.adicionais && p.adicionais.length > 0) {
                 p.adicionais.forEach(ad => precoComOpcoes += ad.preco);
             }
+            if (p.adicionais2 && p.adicionais2.length > 0) {
+                p.adicionais2.forEach(ad => precoComOpcoes += ad.preco);
+            }
+            if (p.adicionais3 && p.adicionais3.length > 0) {
+                p.adicionais3.forEach(ad => precoComOpcoes += ad.preco);
+            }
+			
             return acc + precoComOpcoes * p.quantidade;
         }, 0);
 
