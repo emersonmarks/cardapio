@@ -1982,6 +1982,12 @@
             if (p.adicionais && p.adicionais.length > 0) {
                 p.adicionais.forEach(ad => precoItem += ad.preco);
             }
+			if (p.adicionais2 && p.adicionais2.length > 0) {
+                p.adicionais2.forEach(ad => precoItem += ad.preco);
+            }
+			if (p.adicionais3 && p.adicionais3.length > 0) {
+                p.adicionais3.forEach(ad => precoItem += ad.preco);
+            }
             return acc + precoItem * p.quantidade;
         }, 0);
         
@@ -2211,7 +2217,3 @@ function selecionarTipo(tipo, elemento) {
 
 </body>
 </html>
-
-
-
-
