@@ -630,6 +630,7 @@
         <div id="listaSabores" class="adicionais-group"></div>
         <div id="listaAdicionais" class="adicionais-group"></div>
 		<div id="listaAdicionais2" class="adicionais-group"></div>
+		<div id="listaAdicionais3" class="adicionais-group"></div>
         
         <p>
             Total do Produto com Adicionais:
@@ -723,15 +724,18 @@
                                 categoria: c[2]?.v,
                                 descricao: c[3]?.v,
                                 preco: parseFloat(c[4]?.v),
-                                tipoSabor: c[5]?.v,
-                                maxSabores: parseInt(c[6]?.v) || 1,
-                                tipoAdicional: c[7]?.v,
-                                minAdicionais: parseInt(c[8]?.v) || 0,
-                                maxAdicionais: parseInt(c[9]?.v) || 999,
-								tipoAdicional2: c[10]?.v,
-                                minAdicionais2: parseInt(c[11]?.v) || 0,
-                                maxAdicionais2: parseInt(c[12]?.v) || 999,
-                                imagem: c[13]?.v,
+								imagem: c[5]?.v,
+                                tipoSabor: c[6]?.v,
+                                maxSabores: parseInt(c[7]?.v) || 1,
+                                tipoAdicional: c[8]?.v,
+                                minAdicionais: parseInt(c[9]?.v) || 0,
+                                maxAdicionais: parseInt(c[10]?.v) || 999,
+								tipoAdicional2: c[11]?.v,
+                                minAdicionais2: parseInt(c[12]?.v) || 0,
+                                maxAdicionais2: parseInt(c[13]?.v) || 999,
+ 								tipoAdicional3: c[14]?.v,
+                                minAdicionais3: parseInt(c[15]?.v) || 0,
+                                maxAdicionais3: parseInt(c[16]?.v) || 999
 
                             };
                         });
@@ -1183,7 +1187,7 @@
 		adicionaisSelecionadosTemp2 = [];
         saboresSelecionadosTemp = [];
 
-        if (produto.tipoAdicional && produto.tipoAdicional !== "Não" || produto.tipoAdicional2 && produto.tipoAdicional2 !== "Não" || produto.tipoSabor) {
+        if (produto.tipoAdicional && produto.tipoAdicional !== "Não" || produto.tipoAdicional2 && produto.tipoAdicional2 !== "Não" || produto.tipoAdicional3 && produto.tipoAdicional3 !== "Não" || produto.tipoSabor) {
             abrirPopupAdicionais(produto);
         } else {
             adicionarAoCarrinhoFinal({
@@ -1199,13 +1203,16 @@
         const listaSaboresDiv = document.getElementById("listaSabores");
         const listaAdicionaisDiv = document.getElementById("listaAdicionais");
 		const listaAdicionaisDiv2 = document.getElementById("listaAdicionais2");
+		const listaAdicionaisDiv3 = document.getElementById("listaAdicionais3");
         listaSaboresDiv.innerHTML = "";
         listaAdicionaisDiv.innerHTML = "";
         listaAdicionaisDiv2.innerHTML = "";
+		listaAdicionaisDiv3.innerHTML = "";
 		
         listaSaboresDiv.style.display = "none";
         listaAdicionaisDiv.style.display = "none";
 		listaAdicionaisDiv2.style.display = "none";
+		listaAdicionaisDiv3.style.display = "none";
 
         // Lógica para os Sabores
         if (produto.tipoSabor) {
@@ -1290,6 +1297,35 @@
                     listaAdicionaisDiv2.appendChild(itemDiv);
                 });
             }
+        }
+
+
+        // Lógica para os Adicionais 3
+        if (produto.tipoAdicional3 && produto.tipoAdicional3 !== "Não") {
+            const adicionaisFiltrados3 = adicionais.filter(a => a.tipo === produto.tipoAdicional3);
+            if (adicionaisFiltrados3.length > 0) {
+				listaAdicionaisDiv3.style.display = "block";
+				const adicionaisTitle = document.createElement("h4");
+                adicionaisTitle.textContent = "Adicionais 3";
+                listaAdicionaisDiv3.appendChild(adicionaisTitle);
+
+				const infoLimitAdicionais = document.createElement("p");
+				infoLimitAdicionais.className = "info-limit";
+				infoLimitAdicionais.id = "adicionalLimitText3";
+				listaAdicionaisDiv3.appendChild(infoLimitAdicionais);
+
+                adicionaisFiltrados3.forEach(adicional3 => {
+                    const itemDiv = document.createElement("div");
+                    itemDiv.className = "adicional-item";
+                    const precoAdicionalText3 = adicional3.preco === 0 ? 'Grátis' : `+ ${adicional3.preco.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    itemDiv.innerHTML = `<label>
+                        <input type="checkbox" data-type="adicional3" data-nome="${adicional3.nome}" data-preco="${adicional3.preco.toFixed(2)}">
+                        ${adicional3.nome}
+                    </label>
+                    <span>${precoAdicionalText3}</span>`;
+                    listaAdicionaisDiv3.appendChild(itemDiv);
+                });
+            }
         }		
 		
         
@@ -1306,6 +1342,7 @@
         produtoSelecionadoParaAdicionais = null;
         adicionaisSelecionadosTemp = [];
 		adicionaisSelecionadosTemp2 = [];
+		adicionaisSelecionadosTemp3 = [];
         saboresSelecionadosTemp = [];
     }
 
@@ -1313,6 +1350,7 @@
         let totalProduto = produtoSelecionadoParaAdicionais.preco;
         adicionaisSelecionadosTemp = [];
 		adicionaisSelecionadosTemp2 = [];
+		adicionaisSelecionadosTemp3 = [];
         saboresSelecionadosTemp = [];
 		let maxSaborPreco = 0;
 
@@ -1320,6 +1358,7 @@
         let selectedSaboresCount = 0;
         let selectedAdicionaisCount = 0;
 		let selectedAdicionaisCount2 = 0;
+		let selectedAdicionaisCount3 = 0;
 
         checkboxes.forEach(checkbox => {
             if (checkbox.checked) {
@@ -1333,6 +1372,8 @@
                     selectedAdicionaisCount++;
                 } else if (checkbox.dataset.type === "adicional2") {
                     selectedAdicionaisCount2++;
+                } else if (checkbox.dataset.type === "adicional3") {
+                    selectedAdicionaisCount3++;
                 }
             }
         });
@@ -1345,11 +1386,14 @@
         const minAdicionaisAllowed = produtoSelecionadoParaAdicionais.minAdicionais;
         const maxAdicionaisAllowed2 = produtoSelecionadoParaAdicionais.maxAdicionais2;
         const minAdicionaisAllowed2 = produtoSelecionadoParaAdicionais.minAdicionais2;
+        const maxAdicionaisAllowed3 = produtoSelecionadoParaAdicionais.maxAdicionais3;
+        const minAdicionaisAllowed3 = produtoSelecionadoParaAdicionais.minAdicionais3;
 
         checkboxes.forEach(checkbox => {
             const isSabor = checkbox.dataset.type === "sabor";
             const isAdicional = checkbox.dataset.type === "adicional";
 			const isAdicional2 = checkbox.dataset.type === "adicional2";
+			const isAdicional3 = checkbox.dataset.type === "adicional3";
 
             if (isSabor && selectedSaboresCount >= maxSaboresAllowed && !checkbox.checked) {
                 checkbox.disabled = true;
@@ -1357,7 +1401,9 @@
                 checkbox.disabled = true;
             } else if (isAdicional2 && selectedAdicionaisCount2 >= maxAdicionaisAllowed2 && maxAdicionaisAllowed2 !== 999 && !checkbox.checked) {
                 checkbox.disabled = true;
-            }else {
+            } else if (isAdicional3 && selectedAdicionaisCount3 >= maxAdicionaisAllowed3 && maxAdicionaisAllowed3 !== 999 && !checkbox.checked) {
+                checkbox.disabled = true;
+            } else {
                 checkbox.disabled = false;
             }
             
@@ -1371,7 +1417,10 @@
                 } else if (isAdicional2) {
                     totalProduto += preco;
                     adicionaisSelecionadosTemp2.push({ nome: nome, preco: preco });
-                } else if (isSabor) {
+                }else if (isAdicional3) {
+                    totalProduto += preco;
+                    adicionaisSelecionadosTemp3.push({ nome: nome, preco: preco });
+                }else if (isSabor) {
                     saboresSelecionadosTemp.push({ nome: nome, preco: preco });
                 }
             }
@@ -1419,6 +1468,29 @@
                 const isMaxViolated = maxAdicionaisAllowed2 !== 999 && selectedAdicionaisCount2 > maxAdicionaisAllowed2;
                 adicionalLimitText2.style.color = (isMinViolated || isMaxViolated) ? "red" : "#666";
             }
+        }
+
+
+
+		const adicionalLimitText3 = document.getElementById("adicionalLimitText3");
+        if (adicionalLimitText3) {
+            adicionalLimitText3.textContent = "";
+            let textToDisplay3 = "";
+    
+            if (minAdicionaisAllowed3 !== 0 && maxAdicionaisAllowed3 !== 999) {
+                textToDisplay3 = `Selecione de ${minAdicionaisAllowed3} a ${maxAdicionaisAllowed3} opção(ões). Selecionados: ${selectedAdicionaisCount3}`;
+            } else if (minAdicionaisAllowed3 === 0 && maxAdicionaisAllowed3 !== 999) {
+                textToDisplay3 = `Selecione até ${maxAdicionaisAllowed3} opção(ões). Selecionados: ${selectedAdicionaisCount3}`;
+            } else if (minAdicionaisAllowed3 !== 0 && maxAdicionaisAllowed3 === 999) {
+                textToDisplay3 = `Selecione pelo menos ${minAdicionaisAllowed3} opção(ões). Selecionados: ${selectedAdicionaisCount3}`;
+            }
+
+            if (textToDisplay3) {
+                adicionalLimitText3.textContent = textToDisplay3;
+                const isMinViolated = minAdicionaisAllowed3 > 0 && selectedAdicionaisCount3 < minAdicionaisAllowed3;
+                const isMaxViolated = maxAdicionaisAllowed3 !== 999 && selectedAdicionaisCount3 > maxAdicionaisAllowed3;
+                adicionalLimitText3.style.color = (isMinViolated || isMaxViolated) ? "red" : "#666";
+            }
         }		
 		
 			
@@ -1442,22 +1514,23 @@
         const maxSaboresAllowed = produto.maxSabores;
 		const tipoAdicional = produto.tipoAdicional;
 		const tipoAdicional2 = produto.tipoAdicional2;
+		const tipoAdicional3 = produto.tipoAdicional3;
         const minAdicionaisAllowed = produto.minAdicionais;
         const maxAdicionaisAllowed = produto.maxAdicionais;
 		const minAdicionaisAllowed2 = produto.minAdicionais2;
         const maxAdicionaisAllowed2 = produto.maxAdicionais2;
+		const minAdicionaisAllowed3 = produto.minAdicionais3;
+        const maxAdicionaisAllowed3 = produto.maxAdicionais3;
+		let message = "";
 
         if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
             alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
             return;
         }
-		if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
-            alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
-            return;
-        }
+
         
         if ((tipoAdicional && tipoAdicional !== "Não" && adicionaisSelecionadosTemp.length < minAdicionaisAllowed) || adicionaisSelecionadosTemp.length > maxAdicionaisAllowed) {
-            let message = "";
+            
             if(minAdicionaisAllowed > 0 && maxAdicionaisAllowed !== 999) {
                 message = `Você deve selecionar de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicionais.`;
             } else if (minAdicionaisAllowed === 0 && maxAdicionaisAllowed !== 999) {
@@ -1473,13 +1546,28 @@
 		
 		
         if ((tipoAdicional2 && tipoAdicional2 !== "Não" && adicionaisSelecionadosTemp2.length < minAdicionaisAllowed2) || adicionaisSelecionadosTemp2.length > maxAdicionaisAllowed2) {
-            let message = "";
+
             if(minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 !== 999) {
                 message = `Você deve selecionar de ${minAdicionaisAllowed2} a ${maxAdicionaisAllowed2} adicionais.`;
             } else if (minAdicionaisAllowed2 === 0 && maxAdicionaisAllowed2 !== 999) {
                 message = `Você deve selecionar até ${maxAdicionaisAllowed2} adicionais.`;
             } else if (minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 === 999) {
                 message = `Você deve selecionar pelo menos ${minAdicionaisAllowed2} adicionais.`;
+            }
+            if (message) {
+                alert(message);
+                return;
+            }
+        }
+		
+        if ((tipoAdicional3 && tipoAdicional3 !== "Não" && adicionaisSelecionadosTemp3.length < minAdicionaisAllowed3) || adicionaisSelecionadosTemp3.length > maxAdicionaisAllowed3) {
+
+            if(minAdicionaisAllowed3 > 0 && maxAdicionaisAllowed3 !== 999) {
+                message = `Você deve selecionar de ${minAdicionaisAllowed3} a ${maxAdicionaisAllowed3} adicionais.`;
+            } else if (minAdicionaisAllowed3 === 0 && maxAdicionaisAllowed3 !== 999) {
+                message = `Você deve selecionar até ${maxAdicionaisAllowed3} adicionais.`;
+            } else if (minAdicionaisAllowed3 > 0 && maxAdicionaisAllowed3 === 999) {
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed3} adicionais.`;
             }
             if (message) {
                 alert(message);
@@ -1497,6 +1585,7 @@
             quantidade: produto.quantidade,
             adicionais: adicionaisSelecionadosTemp,
 			adicionais2: adicionaisSelecionadosTemp2,
+			adicionais3: adicionaisSelecionadosTemp3,
             sabores: saboresSelecionadosTemp,
 			maxSaborPreco: maxSaborPreco,
         };
@@ -1510,6 +1599,7 @@
             carrinhoItem.nome === item.nome &&
             JSON.stringify(carrinhoItem.adicionais) === JSON.stringify(item.adicionais) &&
 			JSON.stringify(carrinhoItem.adicionais2) === JSON.stringify(item.adicionais2) &&
+			JSON.stringify(carrinhoItem.adicionais3) === JSON.stringify(item.adicionais3) &&
             JSON.stringify(carrinhoItem.sabores) === JSON.stringify(item.sabores)
         );
 
@@ -1548,6 +1638,7 @@
             let precoTotalItem = p.preco; // Preço para cálculo do total
             let descAdicionais = "";
 			let descAdicionais2 = "";
+			let descAdicionais3 = "";
             let descSabores = "";
 
             if (p.sabores && p.sabores.length > 0) {
@@ -1574,6 +1665,14 @@
                     descAdicionais2 += `\n        + ${ad.nome} (${precoAdicionalText2})`;
                 });
             }
+			
+			if (p.adicionais3 && p.adicionais3.length > 0) {
+                p.adicionais3.forEach(ad => {
+                    precoTotalItem += ad.preco; // Adiciona o adicional somente ao cálculo do total
+                    const precoAdicionalText3 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    descAdicionais3 += `\n        + ${ad.nome} (${precoAdicionalText3})`;
+                });
+            }
 
             valorTotal += precoTotalItem * p.quantidade;
 
@@ -1582,7 +1681,8 @@
                 <strong>${p.quantidade}x ${p.nome} - ${(precoDisplay * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
                 ${descSabores ? `<small>Sabores:${descSabores}</small><br>` : ''}
                 ${descAdicionais ? `<small>Adicionais:${descAdicionais}</small><br>` : ''}
-				${descAdicionais2 ? `<small>Adicionais:${descAdicionais2}</small>` : ''}
+				${descAdicionais2 ? `<small>Adicionais:${descAdicionais2}</small><br>` : ''}
+				${descAdicionais3 ? `<small>Adicionais:${descAdicionais3}</small>` : ''}
             </span>
             <button onclick="removerItem(${i}, event)">X</button>`;
             lista.appendChild(li);
@@ -1852,6 +1952,14 @@
                 p.adicionais2.forEach(ad => {
                     const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
                     detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText2})\n`;
+                });
+            }
+			
+			if (p.adicionais3 && p.adicionais3.length > 0) {
+				detalhesPedidoString += `     Adicionais:\n`;
+                p.adicionais3.forEach(ad => {
+                    const precoAdicionalText3 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText3})\n`;
                 });
             }
         });
