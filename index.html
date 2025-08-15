@@ -1249,7 +1249,7 @@
             if (adicionaisFiltrados.length > 0) {
 				listaAdicionaisDiv.style.display = "block";
 				const adicionaisTitle = document.createElement("h4");
-                adicionaisTitle.textContent = "Adicionais 1";
+                adicionaisTitle.textContent = `${produto.tipoAdicional}`;
                 listaAdicionaisDiv.appendChild(adicionaisTitle);
 
 				const infoLimitAdicionais = document.createElement("p");
@@ -1278,7 +1278,7 @@
             if (adicionaisFiltrados2.length > 0) {
 				listaAdicionaisDiv2.style.display = "block";
 				const adicionaisTitle = document.createElement("h4");
-                adicionaisTitle.textContent = "Adicionais 2";
+                adicionaisTitle.textContent = `${produto.tipoAdicional2}`;
                 listaAdicionaisDiv2.appendChild(adicionaisTitle);
 
 				const infoLimitAdicionais = document.createElement("p");
@@ -1307,7 +1307,7 @@
             if (adicionaisFiltrados3.length > 0) {
 				listaAdicionaisDiv3.style.display = "block";
 				const adicionaisTitle = document.createElement("h4");
-                adicionaisTitle.textContent = "Adicionais 3";
+                adicionaisTitle.textContent = `${produto.tipoAdicional3}`;
                 listaAdicionaisDiv3.appendChild(adicionaisTitle);
 
 				const infoLimitAdicionais = document.createElement("p");
@@ -1533,11 +1533,11 @@
         if ((tipoAdicional && tipoAdicional !== "Não" && adicionaisSelecionadosTemp.length < minAdicionaisAllowed) || adicionaisSelecionadosTemp.length > maxAdicionaisAllowed) {
             
             if(minAdicionaisAllowed > 0 && maxAdicionaisAllowed !== 999) {
-                message = `Você deve selecionar de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} adicionais.`;
+                message = `Você deve selecionar de ${minAdicionaisAllowed} a ${maxAdicionaisAllowed} opções para ${tipoAdicional}.`;
             } else if (minAdicionaisAllowed === 0 && maxAdicionaisAllowed !== 999) {
-                message = `Você deve selecionar até ${maxAdicionaisAllowed} adicionais.`;
+                message = `Você deve selecionar até ${maxAdicionaisAllowed} opções para ${tipoAdicional}`;
             } else if (minAdicionaisAllowed > 0 && maxAdicionaisAllowed === 999) {
-                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed} adicionais.`;
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed} opções para ${tipoAdicional}.`;
             }
             if (message) {
                 alert(message);
@@ -1549,11 +1549,11 @@
         if ((tipoAdicional2 && tipoAdicional2 !== "Não" && adicionaisSelecionadosTemp2.length < minAdicionaisAllowed2) || adicionaisSelecionadosTemp2.length > maxAdicionaisAllowed2) {
 
             if(minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 !== 999) {
-                message = `Você deve selecionar de ${minAdicionaisAllowed2} a ${maxAdicionaisAllowed2} adicionais.`;
+                message = `Você deve selecionar de ${minAdicionaisAllowed2} a ${maxAdicionaisAllowed2} opções para ${tipoAdicional2}.`;
             } else if (minAdicionaisAllowed2 === 0 && maxAdicionaisAllowed2 !== 999) {
-                message = `Você deve selecionar até ${maxAdicionaisAllowed2} adicionais.`;
+                message = `Você deve selecionar até ${maxAdicionaisAllowed2} opções para ${tipoAdicional2}.`;
             } else if (minAdicionaisAllowed2 > 0 && maxAdicionaisAllowed2 === 999) {
-                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed2} adicionais.`;
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed2} opções para ${tipoAdicional2}.`;
             }
             if (message) {
                 alert(message);
@@ -1564,11 +1564,11 @@
         if ((tipoAdicional3 && tipoAdicional3 !== "Não" && adicionaisSelecionadosTemp3.length < minAdicionaisAllowed3) || adicionaisSelecionadosTemp3.length > maxAdicionaisAllowed3) {
 
             if(minAdicionaisAllowed3 > 0 && maxAdicionaisAllowed3 !== 999) {
-                message = `Você deve selecionar de ${minAdicionaisAllowed3} a ${maxAdicionaisAllowed3} adicionais.`;
+                message = `Você deve selecionar de ${minAdicionaisAllowed3} a ${maxAdicionaisAllowed3} opções para ${tipoAdicional3}.`;
             } else if (minAdicionaisAllowed3 === 0 && maxAdicionaisAllowed3 !== 999) {
-                message = `Você deve selecionar até ${maxAdicionaisAllowed3} adicionais.`;
+                message = `Você deve selecionar até ${maxAdicionaisAllowed3} opções para ${tipoAdicional3}.`;
             } else if (minAdicionaisAllowed3 > 0 && maxAdicionaisAllowed3 === 999) {
-                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed3} adicionais.`;
+                message = `Você deve selecionar pelo menos ${minAdicionaisAllowed3} opções para ${tipoAdicional3	}.`;
             }
             if (message) {
                 alert(message);
@@ -1681,9 +1681,9 @@
             li.innerHTML = `<span>
                 <strong>${p.quantidade}x ${p.nome} - ${(precoDisplay * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</strong><br>
                 ${descSabores ? `<small>Sabores:${descSabores}</small><br>` : ''}
-                ${descAdicionais ? `<small>Adicionais:${descAdicionais}</small><br>` : ''}
-				${descAdicionais2 ? `<small>Adicionais:${descAdicionais2}</small><br>` : ''}
-				${descAdicionais3 ? `<small>Adicionais:${descAdicionais3}</small>` : ''}
+                ${descAdicionais ? `<small>${p.tipoAdicional}:${descAdicionais}</small><br>` : ''}
+				${descAdicionais2 ? `<small>${p.tipoAdicional2}:${descAdicionais2}</small><br>` : ''}
+				${descAdicionais3 ? `<small>${p.tipoAdicional3}:${descAdicionais3}</small>` : ''}
             </span>
             <button onclick="removerItem(${i}, event)">X</button>`;
             lista.appendChild(li);
@@ -1948,7 +1948,7 @@
 				detalhesPedidoString += `\n`;
             }
             if (p.adicionais && p.adicionais.length > 0) {
-				detalhesPedidoString += `     Adicionais:\n`;
+				detalhesPedidoString += `     ${p.tipoAdicional}:\n`;
                 p.adicionais.forEach(ad => {
                     const precoAdicionalText = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
                     detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText})\n`;
@@ -1956,7 +1956,7 @@
             }
 			
 			if (p.adicionais2 && p.adicionais2.length > 0) {
-				detalhesPedidoString += `     Adicionais:\n`;
+				detalhesPedidoString += `     ${p.tipoAdicional2}:\n`;
                 p.adicionais2.forEach(ad => {
                     const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
                     detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText2})\n`;
@@ -1964,7 +1964,7 @@
             }
 			
 			if (p.adicionais3 && p.adicionais3.length > 0) {
-				detalhesPedidoString += `     Adicionais:\n`;
+				detalhesPedidoString += `     ${p.tipoAdicional3}:\n`;
                 p.adicionais3.forEach(ad => {
                     const precoAdicionalText3 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
                     detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText3})\n`;
