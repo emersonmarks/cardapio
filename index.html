@@ -290,7 +290,7 @@
             text-decoration: none;
         }
 
-        #popupPedido {
+        #popupPedido, #popupAdicionais, #popupLojaFechada, #popupHorarios, #popupMensagem {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -319,22 +319,6 @@
         }
 
         /* Estilos para o Pop-up de Adicionais e Sabores */
-        #popupAdicionais {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 4; /* Maior que o popupPedido */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
         #popupAdicionais.ativo {
             opacity: 1;
             pointer-events: auto;
@@ -358,7 +342,7 @@
 		
 		.popup-conteudo p {
             font-size: 1.1rem;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             line-height: 1.5;
         }
         
@@ -377,6 +361,7 @@
 		.adicionais-group h4 {
 			color: #ff7800; /* Cor do título alterada */
 			font-size: 1.2rem;
+			margin-bottom: 5px;
 		}
 
 
@@ -432,21 +417,6 @@
 		
 
         /* Novo estilo para o popup de loja fechada */
-        #popupLojaFechada {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999; /* Garante que fique por cima de tudo */
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
 
         #popupLojaFechada.ativo {
             opacity: 1;
@@ -465,19 +435,6 @@
             background: #e66a00;
         }
 		
-		.popup-horarios {
-          position: fixed;
-          top: 0; left: 0;
-          width: 100%; height: 100%;
-          background: rgba(0, 0, 0, 0.6);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity 0.3s ease;
-        }
         .popup-horarios.ativo {
           opacity: 1;
           pointer-events: auto;
@@ -511,37 +468,22 @@
 		0% { transform: rotate(0deg); }
 		100% { transform: rotate(360deg); }
 		}
-        
-        		
-    
-#popupMensagem {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9999;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-}
-#popupMensagem.ativo {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-#popupMensagem.ativo .popup-conteudo {
-    transform: scale(1);
-}
-
-#popupMensagem button {
-    background: #ff7800;
-}
-#popupMensagem button:hover {
-    background: #e66a00;
-}
+            		
+		#popupMensagem.ativo {
+			opacity: 1;
+			pointer-events: auto;
+		}
+		
+		#popupMensagem.ativo .popup-conteudo {
+			transform: scale(1);
+		}
+		
+		#popupMensagem button {
+			background: #ff7800;
+		}
+		#popupMensagem button:hover {
+			background: #e66a00;
+		}
 
 </style>
 </head>
