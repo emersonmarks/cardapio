@@ -158,7 +158,7 @@
             justify-content: center;
             align-items: center;
             gap: 0.5rem;
-			margin-top: 3px;
+			margin-top: 5px;
         }
 
         .quantidade-container button {
@@ -187,7 +187,7 @@
             border: 1px solid #ccc;
             padding: 1rem;
             border-radius: 8px;
-            width: 300px;
+            width: 340px;
             z-index: 2;
             box-shadow: 0 0 10px rgba(0,0,0,0.2);
             opacity: 0;
@@ -213,21 +213,16 @@
         }
 
 
-        .produto button, #carrinho button, #btenviarpedido, #btcancelar, #btAdicionarAoCarrinhoComAdicionais, #btCancelarAdicionais, #btfinalizarpedido, #btVoltar{
-            font-size:16px;
+        button{
+            font-size:1rem;
             margin-top: 0.5rem;
-            padding: 0.5rem;
+            padding: 10px 14px;
             background: green;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
-		
-		#btVoltar{
-			width:160px;
-			align-self: center;
-		}
 		
 		.produto button{
 			float:right;
@@ -345,19 +340,26 @@
             pointer-events: auto;
         }
 
-        .popup-conteudo {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 94%;
-            max-width: 500px;
-            max-height: 94%; /* Limita a altura para rolagem */
-            overflow-y: auto; /* Adiciona barra de rolagem se necessário */
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transform: scale(0.9);
-            transition: transform 0.3s ease;
+		.popup-conteudo {
+			background: white;
+			padding: 20px;
+			border-radius: 8px;
+			width: 94%;
+			text-align: center;
+			max-width: 500px;
+			max-height: 94%; /* Limita a altura para rolagem */
+			overflow-y: auto; /* Adiciona barra de rolagem se necessário */
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+			transform: scale(0.9);
+			transition: transform 0.3s ease;
+		}
+		
+		.popup-conteudo p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            line-height: 1.5;
         }
         
         .adicionais-group {
@@ -451,34 +453,12 @@
             pointer-events: auto;
         }
 
-        #popupLojaFechada .popup-conteudo {
-            text-align: center;
-        }
-
         #popupLojaFechada.ativo .popup-conteudo {
             transform: scale(1);
         }
 
-        #popupLojaFechada h3 {
-            color: #d9534f;
-            margin-bottom: 15px;
-            font-size: 1.5rem;
-        }
-
-        #popupLojaFechada p {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-            line-height: 1.5;
-        }
-
-        #popupLojaFechada button {
+        #popupLojaFechada button{
             background: #ff7800;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1rem;
         }
 
         #popupLojaFechada button:hover {
@@ -502,16 +482,11 @@
           opacity: 1;
           pointer-events: auto;
         }
-        .popup-horarios .popup-conteudo {
-          background: #fff;
-          padding: 20px;
-          border-radius: 8px;
-          max-width: 90%;
-          width: 400px;
-          text-align: center;
-        }
-        .popup-horarios h3 , .popup-conteudo h3 {
-		  font-size: 1.5rem;
+
+        .popup-conteudo h3 {
+			color: #ff7800;
+			margin-bottom: 15px;
+			font-size: 1.5rem;
          
         }
         .popup-horarios ul li {
@@ -538,7 +513,37 @@
 		}
         
         		
-    </style>
+    
+#popupMensagem {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+#popupMensagem.ativo {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#popupMensagem.ativo .popup-conteudo {
+    transform: scale(1);
+}
+
+#popupMensagem button {
+    background: #ff7800;
+}
+#popupMensagem button:hover {
+    background: #e66a00;
+}
+
+</style>
 </head>
 <body>
 
@@ -656,7 +661,15 @@
   <div class="popup-conteudo">
     <h3>⏰ Horários de Funcionamento</h3>
     <ul id="listaHorariosFuncionamento" style="list-style: none; padding: 0;"></ul>
-    <button id="btVoltar" onclick="fecharPopupHorarios()">Fechar</button>
+    <button id="btVoltar" onclick="fecharPopupHorarios()">Voltar</button>
+  </div>
+</div>
+
+<div id="popupMensagem">
+  <div class="popup-conteudo">
+    <h3 id="popupMensagemTitulo">Aviso</h3>
+    <p id="popupMensagemTexto"></p>
+    <button onclick="fecharPopupMensagem()">OK</button>
   </div>
 </div>
 
@@ -1179,7 +1192,7 @@
     function prepararParaAdicionarCarrinho(produto, id) {
         const qtd = parseInt(document.getElementById(`qtd_${id}`).textContent);
         if (qtd <= 0 || isNaN(qtd)) {
-            alert("Quantidade inválida!");
+            mostrarPopupMensagem("Aviso", "Quantidade inválida!");
             return;
         }
 
@@ -1525,7 +1538,7 @@
 		let message = "";
 
         if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
-            alert(`Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
+            mostrarPopupMensagem("Aviso", `Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es); para este produto.`);
             return;
         }
 
@@ -1540,7 +1553,7 @@
                 message = `Você deve selecionar pelo menos ${minAdicionaisAllowed} opções para ${tipoAdicional}.`;
             }
             if (message) {
-                alert(message);
+                mostrarPopupMensagem("Aviso", message);
                 return;
             }
         }
@@ -1556,7 +1569,7 @@
                 message = `Você deve selecionar pelo menos ${minAdicionaisAllowed2} opções para ${tipoAdicional2}.`;
             }
             if (message) {
-                alert(message);
+                mostrarPopupMensagem("Aviso", message);
                 return;
             }
         }
@@ -1571,7 +1584,7 @@
                 message = `Você deve selecionar pelo menos ${minAdicionaisAllowed3} opções para ${tipoAdicional3	}.`;
             }
             if (message) {
-                alert(message);
+                mostrarPopupMensagem("Aviso", message);
                 return;
             }
         }
@@ -1732,7 +1745,7 @@
         }
 
         if (carrinho.length === 0) {
-            alert("O carrinho está vazio!");
+            mostrarPopupMensagem("Aviso", "O carrinho está vazio!");
             return;
         }
 
@@ -1830,7 +1843,7 @@
 
         const tipo = tipoSelecionado;
         if (!tipo) {
-            alert("Por favor, selecione o tipo do pedido.");
+            mostrarPopupMensagem("Aviso", "Por favor, selecione o tipo do pedido.");
             btnEnviarPedido.disabled = false;
             return;
         }
@@ -1842,19 +1855,19 @@
         const whatsappRegex = /^\d{2} \d{5}-\d{4}$/;
         
         if (!nome) {
-            alert("Por favor, preencha o Nome.");
+            mostrarPopupMensagem("Aviso", "Por favor, preencha o Nome.");
             btnEnviarPedido.disabled = false;
             return;
         }
         
         if (!whatsapp) {
-            alert("Por favor, preencha o Número do WhatsApp.");
+            mostrarPopupMensagem("Aviso", "Por favor, preencha o Número do WhatsApp.");
             btnEnviarPedido.disabled = false;
             return;
         }
         
         if (!whatsappRegex.test(whatsapp)) {
-            alert("Formato de WhatsApp inválido. Use o formato: xx xxxxx-xxxx");
+            mostrarPopupMensagem("Aviso", "Formato de WhatsApp inválido. Use o formato: xx xxxxx-xxxx");
             btnEnviarPedido.disabled = false;
             return;
         }
@@ -1876,29 +1889,29 @@
             taxaEntrega = bairrosEntrega[bairro] || 0;
 
             if (!endereco) {
-                alert("Por favor, preencha o Endereço.");
+                mostrarPopupMensagem("Aviso", "Por favor, preencha o Endereço.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
             if (!numeroCasa) {
-                alert("Por favor, preencha o Número da Casa.");
+                mostrarPopupMensagem("Aviso", "Por favor, preencha o Número da Casa.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
             if (!bairro) {
-                alert("Por favor, selecione o Bairro.");
+                mostrarPopupMensagem("Aviso", "Por favor, selecione o Bairro.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
             if (!formaPagamento) {
-                alert("Por favor, selecione a Forma de Pagamento.");
+                mostrarPopupMensagem("Aviso", "Por favor, selecione a Forma de Pagamento.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
             if (formaPagamento === "Dinheiro") {
                 const trocoValor = parseFloat(troco.replace(',', '.'));
                 if (!troco || isNaN(trocoValor)) {
-                    alert("Por favor, informe um valor válido para o troco.");
+                    mostrarPopupMensagem("Aviso", "Por favor, informe um valor válido para o troco.");
                     btnEnviarPedido.disabled = false;
                     return;
                 }
@@ -1908,14 +1921,14 @@
             troco = document.getElementById("troco").value.trim();
 
             if (!formaPagamento) {
-                alert("Por favor, selecione a Forma de Pagamento.");
+                mostrarPopupMensagem("Aviso", "Por favor, selecione a Forma de Pagamento.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
             if (formaPagamento === "Dinheiro") {
                 const trocoValor = parseFloat(troco.replace(',', '.'));
                 if (!troco || isNaN(trocoValor)) {
-                    alert("Por favor, informe um valor válido para o troco.");
+                    mostrarPopupMensagem("Aviso", "Por favor, informe um valor válido para o troco.");
                     btnEnviarPedido.disabled = false;
                     return;
                 }
@@ -1923,7 +1936,7 @@
         } else if (tipo === "Mesa") {
             mesa = document.getElementById("mesa").value.trim();
             if (!mesa) {
-                alert("Por favor, preencha o Número da Mesa.");
+                mostrarPopupMensagem("Aviso", "Por favor, preencha o Número da Mesa.");
                 btnEnviarPedido.disabled = false;
                 return;
             }
@@ -2086,7 +2099,7 @@
 
         } catch (error) {
             console.error("Erro ao enviar pedido para o Apps Script:", error);
-            alert("Erro ao finalizar o pedido. Por favor, tente novamente. Verifique o console do navegador para mais detalhes.");
+            mostrarPopupMensagem("Aviso", "Erro ao finalizar o pedido. Por favor, tente novamente. Verifique o console do navegador para mais detalhes.");
         } finally {
             btnEnviarPedido.disabled = false;
             spinner.style.display = 'none';
@@ -2213,7 +2226,18 @@ function selecionarTipo(tipo, elemento) {
 });
 
 	
+
+function mostrarPopupMensagem(titulo, mensagem) {
+    document.getElementById("popupMensagemTitulo").textContent = titulo || "Aviso";
+    document.getElementById("popupMensagemTexto").textContent = mensagem;
+    document.getElementById("popupMensagem").classList.add("ativo");
+}
+function fecharPopupMensagem() {
+    document.getElementById("popupMensagem").classList.remove("ativo");
+}
+
 </script>
+
 
 </body>
 </html>
