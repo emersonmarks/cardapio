@@ -58,14 +58,9 @@
         }
 
         nav button {
-			font-size: 16px;
-            white-space: nowrap;
-            background: #666;
-            color: white;
-            padding: 0.5rem;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
+			margin-top:0px;
+			background: #666;
+
         }
 
         nav button:hover { background: #888; }
@@ -216,13 +211,17 @@
         button{
             font-size:1rem;
             margin-top: 0.5rem;
-            padding: 10px 14px;
+            padding: 10px 12px;
             background: green;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
         }
+		
+		input{
+			font-size:1rem;
+		}
 		
 		.produto button{
 			float:right;
@@ -303,6 +302,10 @@
             pointer-events: none;
             transition: opacity 0.3s ease;
         }
+		
+		#popupPedido label{
+			text-align: left;
+		}		
 
         #popupPedido.ativo {
             opacity: 1;
@@ -310,6 +313,13 @@
         }
 
         #popupPedido.ativo .popup-conteudo { transform: scale(1); }
+		
+		#tipoOptions{
+			display: flex;
+			gap: 10px;
+			flex-wrap: wrap;
+			margin-bottom: 10px;
+		}
 
         .popup-conteudo input, .popup-conteudo select {
             width: 100%;
@@ -518,43 +528,43 @@
     <div class="popup-conteudo">
         <h3>Finalizar Pedido</h3>
 		<div id="tipoContainer">
-  <h4 style="margin-bottom: 5px;">Escolha o tipo do pedido:</h4>
-  <div id="tipoOptions" style="display: flex; gap: 10px; flex-wrap: wrap;"></div>
-</div>		
-		<label>Número da Mesa:
-            <input type="number" id="mesa" />
-        </label>
-        <label>Nome:
-			<input type="text" id="nomeCliente" />
-		</label>
-		<label>WhatsApp:
-			<input type="text" id="whatsappCliente" pattern="\d{2} \d{5}-\d{4}" placeholder="Ex.: 99 99999-9999" />
-		</label>
-        <label>Endereço:
-            <input type="text" id="endereco" />
-        </label>
-        <label>Número da Casa:
-            <input type="number" id="numeroCasa" />
-        </label>
-        <label>Bairro:
-            <select id="bairroSelect">
-                <option value="">Selecione o bairro</option>
-            </select>
-        </label>
-        <label>Forma de Pagamento:
-            <select id="formaPagamento" onchange="toggleTrocoField()">
-                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                <option value="Cartão de Débito">Cartão de Débito</option>
-				<option value="Dinheiro">Dinheiro</option>
-                <option value="Pix">Pix</option>				
-            </select>
-        </label>
-        <label id="labelTroco" style="display:none;">Troco para quanto?
-            <input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
-        </label>
-        <label>Observação:
-            <input type="text" id="observacao" />
-        </label>
+			<h4 style="margin-bottom: 5px;">Escolha o tipo do pedido:</h4>
+			<div id="tipoOptions"></div>
+		</div>
+			<label>Número da Mesa:
+				<input type="number" id="mesa" />
+			</label>
+			<label>Nome:
+				<input type="text" id="nomeCliente" />
+			</label>
+			<label>WhatsApp:
+				<input type="text" id="whatsappCliente" pattern="\d{2} \d{5}-\d{4}" placeholder="Ex.: 99 99999-9999" />
+			</label>
+			<label>Endereço:
+				<input type="text" id="endereco" />
+			</label>
+			<label>Número da Casa:
+				<input type="number" id="numeroCasa" />
+			</label>
+			<label>Bairro:
+				<select id="bairroSelect">
+					<option value="">Selecione o bairro</option>
+				</select>
+			</label>
+			<label>Forma de Pagamento:
+				<select id="formaPagamento" onchange="toggleTrocoField()">
+					<option value="Cartão de Crédito">Cartão de Crédito</option>
+					<option value="Cartão de Débito">Cartão de Débito</option>
+					<option value="Dinheiro">Dinheiro</option>
+					<option value="Pix">Pix</option>				
+				</select>
+			</label>
+			<label id="labelTroco" style="display:none;">Troco para quanto?
+				<input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
+			</label>
+			<label>Observação:
+				<input type="text" id="observacao" />
+			</label>
 
         <p id="totalPedido" style="font-weight:bold; font-size:1.2rem; margin-top:5px;">
             Total do Pedido: R$ 0,00
