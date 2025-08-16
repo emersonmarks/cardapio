@@ -1,4 +1,4 @@
-
+	
 
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -2041,6 +2041,8 @@
             
             spinner.style.display = 'none';
             btnEnviarPedido.disabled = false; 
+			
+			mostrarPopupMensagem("Aviso", "✅ Pedido feito!");
 
             const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
