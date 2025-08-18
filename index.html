@@ -1,5 +1,3 @@
-	
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -44,7 +42,7 @@
             flex-wrap: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            padding-bottom: 6px; /* espaço interno */
+            padding-bottom: 4px; /* espaço interno */
             margin-bottom: 2px; /* "empurra" a barra para fora um pouco */
         }
 
@@ -210,11 +208,10 @@
             margin-right: -6px;
         }
 
-
         button{
             font-size:1rem;
             margin-top: 0.5rem;
-            padding: 10px 12px;
+            padding: 8px 12px;
             background: green;
             color: white;
             border: none;
@@ -289,7 +286,7 @@
             text-decoration: none;
         }
 
-        #popupPedido, #popupAdicionais, #popupLojaFechada, .popup-horarios, #popupMensagem {
+        #popupPedido, #popupAdicionais, #popupLojaFechada, #popupHorarios, #popupMensagem {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -307,12 +304,12 @@
 			text-align: left;
 		}		
 
-        #popupPedido.ativo {
+        #popupPedido.ativo, #popupAdicionais.ativo, #popupLojaFechada.ativo, #popupHorarios.ativo, #popupMensagem.ativo {
             opacity: 1;
             pointer-events: auto;
         }
 
-        #popupPedido.ativo .popup-conteudo { transform: scale(1); }
+        #popupPedido.ativo .popup-conteudo, #popupAdicionais.ativo .popup-conteudo, #popupLojaFechada.ativo .popup-conteudo, #popupHorarios.ativo .popup-conteudo, #popupMensagem.ativo .popup-conteudo{ transform: scale(1); }
 		
 		#tipoOptions{
 			display: flex;
@@ -327,12 +324,6 @@
             padding: 0.5rem;
             border: 1px solid #ccc;
             border-radius: 4px;
-        }
-
-        /* Estilos para o Pop-up de Adicionais e Sabores */
-        #popupAdicionais.ativo {
-            opacity: 1;
-            pointer-events: auto;
         }
 
 		.popup-conteudo {
@@ -373,11 +364,6 @@
 			font-size: 1.2rem;
 			margin-bottom: 5px;
 		}
-
-
-        #popupAdicionais.ativo .popup-conteudo {
-            transform: scale(1);
-        }
 
         .adicional-item {
             display: flex;
@@ -424,18 +410,6 @@
 		background-color: #fff3e6;
 		font-weight: bold;
 		}
-		
-
-        /* Novo estilo para o popup de loja fechada */
-
-        #popupLojaFechada.ativo {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        #popupLojaFechada.ativo .popup-conteudo {
-            transform: scale(1);
-        }
 
         #popupLojaFechada button{
             background: #ff7800;
@@ -444,11 +418,6 @@
         #popupLojaFechada button:hover {
             background: #e66a00;
         }
-		
-        .popup-horarios.ativo {
-          opacity: 1;
-          pointer-events: auto;
-        }
 
         .popup-conteudo h3 {
 			color: #ff7800;
@@ -456,7 +425,7 @@
 			font-size: 1.5rem;
          
         }
-        .popup-horarios ul li {
+        #popupHorarios ul li {
           margin: 5px 0;
           font-size: 1.2rem;
         }
@@ -477,15 +446,6 @@
 		@keyframes spin {
 		0% { transform: rotate(0deg); }
 		100% { transform: rotate(360deg); }
-		}
-            		
-		#popupMensagem.ativo {
-			opacity: 1;
-			pointer-events: auto;
-		}
-		
-		#popupMensagem.ativo .popup-conteudo {
-			transform: scale(1);
 		}
 		
 		#popupMensagem button {
@@ -609,7 +569,7 @@
     </div>
 </div>
 
-<div id="popupHorarios" class="popup-horarios">
+<div id="popupHorarios">
   <div class="popup-conteudo">
     <h3>⏰ Horários de Funcionamento</h3>
     <ul id="listaHorariosFuncionamento" style="list-style: none; padding: 0;"></ul>
@@ -2195,5 +2155,4 @@ function fecharPopupMensagem() {
 
 </body>
 </html>
-
 
