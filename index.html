@@ -42,7 +42,7 @@
             flex-wrap: nowrap;
             -webkit-overflow-scrolling: touch;
             scrollbar-width: thin;
-            padding-bottom: 4px; /* espaço interno */
+            padding-bottom: 6px; /* espaço interno */
             margin-bottom: 2px; /* "empurra" a barra para fora um pouco */
         }
 
@@ -485,7 +485,7 @@
 </div>
 
 <div id="popupPedido">
-    <div class="popup-conteudo">
+    <div id="popupConteudo" class="popup-conteudo">
         <h3>Finalizar Pedido</h3>
 		<div id="tipoContainer">
 			<h4 style="margin-bottom: 5px;">Escolha o tipo do pedido:</h4>
@@ -1264,7 +1264,11 @@
     }
 
     function fecharPopupAdicionais() {
-        document.getElementById("popupAdicionais").classList.remove("ativo");
+		document.querySelectorAll('.popup-conteudo').forEach(el => {
+		el.scrollTop = 0;
+		});
+		document.getElementById("popupAdicionais").classList.remove("ativo");
+		
         produtoSelecionadoParaAdicionais = null;
         adicionaisSelecionadosTemp = [];
 		adicionaisSelecionadosTemp2 = [];
@@ -1689,6 +1693,9 @@
     }
 
     function fecharPopup() {
+		document.querySelectorAll('.popup-conteudo').forEach(el => {
+		el.scrollTop = 0;
+		});
         document.getElementById("popupPedido").classList.remove("ativo");
     }
 
@@ -2121,7 +2128,10 @@ function selecionarTipo(tipo, elemento) {
     }
     
     function fecharPopupHorarios() {
-      document.getElementById("popupHorarios").classList.remove("ativo");
+		document.querySelectorAll('.popup-conteudo').forEach(el => {
+		el.scrollTop = 0;
+		});
+		document.getElementById("popupHorarios").classList.remove("ativo");
     }
     
 	
