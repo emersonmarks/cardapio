@@ -1827,14 +1827,7 @@
                 btnEnviarPedido.disabled = false;
                 return;
             }
-            if (formaPagamento === "Dinheiro") {
-                const trocoValor = parseFloat(troco.replace(',', '.'));
-                if (!troco || isNaN(trocoValor)) {
-                    mostrarPopupMensagem("Aviso", "Por favor, informe um valor válido para o troco.");
-                    btnEnviarPedido.disabled = false;
-                    return;
-                }
-            }
+
         } else if (tipo === "Retirada") {
             formaPagamento = document.getElementById("formaPagamento").value;
             troco = document.getElementById("troco").value.trim();
@@ -1844,14 +1837,7 @@
                 btnEnviarPedido.disabled = false;
                 return;
             }
-            if (formaPagamento === "Dinheiro") {
-                const trocoValor = parseFloat(troco.replace(',', '.'));
-                if (!troco || isNaN(trocoValor)) {
-                    mostrarPopupMensagem("Aviso", "Por favor, informe um valor válido para o troco.");
-                    btnEnviarPedido.disabled = false;
-                    return;
-                }
-            }
+
         } else if (tipo === "Mesa") {
             mesa = document.getElementById("mesa").value.trim();
             if (!mesa) {
@@ -1860,50 +1846,8 @@
                 return;
             }
         }
-        
-        let detalhesPedidoString = "";
-        carrinho.forEach(p => {
-            let precoUnitarioComSabores = p.preco;
-            if (p.sabores && p.sabores.length > 0) {
-                const maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
-                precoUnitarioComSabores += maxSaborPreco;
-            }
-        
-            detalhesPedidoString += `🔹 ${p.quantidade}x ${p.nome} - ${(precoUnitarioComSabores * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
-        
-            if (p.sabores && p.sabores.length > 0) {
-                detalhesPedidoString += `     Sabores:`;
-				
-				p.sabores.forEach(s => {
-                    detalhesPedidoString += ` • ${s.nome}`;
-                });
-				detalhesPedidoString += `\n`;
-            }
-            if (p.adicionais && p.adicionais.length > 0) {
-				detalhesPedidoString += `     ${p.tipoAdicional}:\n`;
-                p.adicionais.forEach(ad => {
-                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText})\n`;
-                });
-            }
-			
-			if (p.adicionais2 && p.adicionais2.length > 0) {
-				detalhesPedidoString += `     ${p.tipoAdicional2}:\n`;
-                p.adicionais2.forEach(ad => {
-                    const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText2})\n`;
-                });
-            }
-			
-			if (p.adicionais3 && p.adicionais3.length > 0) {
-				detalhesPedidoString += `     ${p.tipoAdicional3}:\n`;
-                p.adicionais3.forEach(ad => {
-                    const precoAdicionalText3 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    detalhesPedidoString += `       + ${ad.nome} (${precoAdicionalText3})\n`;
-                });
-            }
-        });
-        
+		
+		
         const totalProdutosComOpcoes = carrinho.reduce((acc, p) => {
             let precoItem = p.preco;
             let maxSaborPreco = 0;
@@ -1924,6 +1868,63 @@
         }, 0);
         
         const totalPedidoFinal = totalProdutosComOpcoes + taxaEntrega;
+		
+		// Verificação do troco menor que o valor final
+		if (formaPagamento === "Dinheiro") {
+			if (troco === "") {
+
+			} else if (troco < totalPedidoFinal) {
+				mostrarPopupMensagem("Aviso", "O valor informado para troco é menor que o total do pedido.");
+				document.getElementById("btenviarpedido").disabled = false;
+				return;
+			}
+		}
+        
+        let detalhesPedidoString = "";
+        carrinho.forEach(p => {
+            let precoUnitarioComSabores = p.preco;
+            if (p.sabores && p.sabores.length > 0) {
+                const maxSaborPreco = Math.max(...p.sabores.map(s => s.preco));
+                precoUnitarioComSabores += maxSaborPreco;
+            }
+        
+            detalhesPedidoString += `🔹 ${p.quantidade}x ${p.nome} - ${(precoUnitarioComSabores * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
+        
+            if (p.sabores && p.sabores.length > 0) {
+                detalhesPedidoString += `       Sabores:`;
+				
+				p.sabores.forEach(s => {
+                    detalhesPedidoString += ` • ${s.nome}`;
+                });
+				detalhesPedidoString += `\n`;
+            }
+            if (p.adicionais && p.adicionais.length > 0) {
+				detalhesPedidoString += `       ${p.tipoAdicional}:\n`;
+                p.adicionais.forEach(ad => {
+                    const precoAdicionalText = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText})\n`;
+                });
+            }
+			
+			if (p.adicionais2 && p.adicionais2.length > 0) {
+				detalhesPedidoString += `       ${p.tipoAdicional2}:\n`;
+                p.adicionais2.forEach(ad => {
+                    const precoAdicionalText2 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText2})\n`;
+                });
+            }
+			
+			if (p.adicionais3 && p.adicionais3.length > 0) {
+				detalhesPedidoString += `        ${p.tipoAdicional3}:\n`;
+                p.adicionais3.forEach(ad => {
+                    const precoAdicionalText3 = ad.preco === 0 ? "Grátis" : `${(ad.preco * p.quantidade).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    detalhesPedidoString += `        + ${ad.nome} (${precoAdicionalText3})\n`;
+                });
+            }
+        });
+        
+
+
         
         // Salva dados no localStorage
         localStorage.setItem("nomeCliente", nome);
@@ -1985,11 +1986,20 @@
             msg += `💰 *Total:* ${totalPedidoFinal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}\n`;
             
             if (tipo !== "Mesa") {
-                if (formaPagamento === "Dinheiro") {
-                    msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+               
+				if (formaPagamento === "Dinheiro" ) {
+
+					// Verificação do troco menor que o valor final
+					if (troco === "") {
+						msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
+					} else {
+						msg += `💵 *Pagamento:* ${formaPagamento} (Troco para R$ ${parseFloat(troco).toFixed(2).replace('.', ',')})\n\n`;
+					}                   
+
                 } else {
                     msg += `💳 *Pagamento:* ${formaPagamento}\n\n`;
-                }
+                }			
+				
             } else {
                 msg += `\n`;
             }
@@ -2009,8 +2019,18 @@
             btnEnviarPedido.disabled = false; 
 			
 			mostrarPopupMensagem("Aviso", "✅ Pedido feito!");
+			
+			// Detecta se está em celular (user agent simples)
+			const isMobile = /Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent);
+			
+			if (isMobile) {
+                // No celular tenta abrir direto no app
+                url = `whatsapp://send?phone=${whatsappOrderNumber}&text=${encodeURIComponent(msg)}`;
+            } else {
+                // No desktop abre no WhatsApp Web
+                url = `https://wa.me/${whatsappOrderNumber}?text=${msg}`;
+            }
 
-            const url = `https://wa.me/${whatsappOrderNumber}?text=${encodeURIComponent(msg)}`;
             window.open(url, "_blank");
 
             carrinho = [];
@@ -2165,4 +2185,3 @@ function fecharPopupMensagem() {
 
 </body>
 </html>
-
