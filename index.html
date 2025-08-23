@@ -519,7 +519,7 @@
 					<option value="Pix">Pix</option>				
 				</select>
 			</label>
-			<label id="labelTroco" style="display:none;">Troco para quanto?
+			<label id="labelTroco" style="display:none;">Precisa de troco?
 				<input type="number" id="troco" min="0" step="0.01" placeholder="Ex: 50,00" />
 			</label>
 			<label>Observação:
@@ -1454,7 +1454,7 @@
 		let message = "";
 
         if (produto.tipoSabor && (saboresSelecionadosTemp.length < minSaboresAllowed || saboresSelecionadosTemp.length > maxSaboresAllowed)) {
-            mostrarPopupMensagem("Aviso", `Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es); para este produto.`);
+            mostrarPopupMensagem("Aviso", `Você deve selecionar de 1 a ${maxSaboresAllowed} sabor(es) para este produto.`);
             return;
         }
 
@@ -2185,3 +2185,4 @@ function fecharPopupMensagem() {
 
 </body>
 </html>
+
